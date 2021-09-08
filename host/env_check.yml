@@ -32,7 +32,7 @@
 ##/winning挂载检查
 - name: /winning mounting check
   register: res
-  shell: "df -h|awk '{print $NF}'|grep /winning"
+  shell: "df -h|awk '{print $NF}'|grep /winning || /bin/true"
 
 - set_fact:
     err_msgs: "{{err_msgs + [ item.host + '没有挂载/winning分区，不能部署！！' ]}}"
