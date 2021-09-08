@@ -1,0 +1,5 @@
+---
+- {include: get_parameters.yml, tags: ['params','get_parameters','get_params'],run_once: True}
+- {include_tasks: upgrade_backend.yml, with_indexed_items: "{{backend_resources}}", tags: ['back','backend','backEnd']}
+- {include_tasks: upgrade_frontend.yml, loop: "{{frontend_resources}}", tags: ['front','frontend','frontEnd'], when: 'inventory_hostname|regex_search("app[1-2]")'}
+- {include_tasks: upgrade_result_check.yml, tags: ['check']}

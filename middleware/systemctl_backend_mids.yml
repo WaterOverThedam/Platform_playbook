@@ -1,0 +1,42 @@
+---
+- name: "{{state|replace('ed','ing')}} services"
+  hosts: '*mid*:!dmts*'
+  ignore_errors: True
+  gather_facts: False
+  become: yes
+  tasks:
+    - set_fact:
+        verb: "{{state|replace('ed','ing')}}"
+      tags: ['var']
+
+    - name: "{{verb}} xxl-job"
+      systemd: name=xxl-job state='{{state}}'
+      when: inventory_hostname|regex_search('mid.*1$')
+      tags: ['xxl-job']
+    - name: "{{verb}} mariadb"
+      systemd: name=mariadb state='{{state}}'
+      when: inventory_hostname|regex_search('mid.*1$')
+      tags: ['mariadb']
+
+    - name: "{{verb}} consul"
+      systemd: name=consul state='{{state}}'
+      tags: ['consul']
+    - name: "{{verb}} rabbitmq"
+      systemd: name=rabbitmq state='{{state}}'
+      tags: ['rabbitmq']
+    - name: "{{verb}} redis"
+      systemd: name=redis state='{{state}}'
+      tags: ['redis']
+    - name: "{{verb}} elsticsearch"
+      systemd: name=elasticsearch state='{{state}}'
+      tags: ['elasticsearch','es']
+
+    - name: "{{verb}} neo4j"
+      systemd: name=neo4j state='{{state}}'
+      when: inventory_hostname|regex_search('mid.*1$')
+      tags: ['neo4j']
+    - name: "{{verb}} minio"
+      systemd: name=minio state='{{state}}'
+      when: inventory_hostname|regex_search('mid.*1$')
+      tags: ['minio']
+

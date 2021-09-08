@@ -1,0 +1,27 @@
+---
+
+- name: "【{{item.app_name}}】 get svn local revision No if exists revision attribute"
+  set_fact:
+    revision: "{{item.revision|default(0,true)}}"
+  when: "item.revision|default('',true)!=''"
+  tags: ['front','config','{{item.app_name}}']
+- name: "【{{item.app_name}}】 get svn local revision No if not exists"
+  set_fact:
+    revision: "{{ lookup('pipe','{{role_path}}/files/get_localNo_by_cloudNo.sh {{item.downloadUrl}} {{item.cloud_revision}}')|default(0,true) }}"
+  when: "item.revision|default('',true)=='' and item.cloud_revision > 0"
+  tags: ['front','config','{{item.app_name}}']
+
+- name: "【{{item.app_name}}】 set revision string pair"
+  set_fact:
+    revision_pair: "{{revision}}/{{item.cloud_revision}}"
+  tags: ['front','config','{{item.app_name}}']
+
+
+- name: "【{{item.app_name}}】get deployed svn revision"
+  set_fact:
+    master_deployed_ver: "{{ lookup('pipe','{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{svn_front_get_pri}}') }}"
+    backup_deployed_ver: "{{ lookup('pipe','{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{svn_front_get_bak}}') }}"
+  tags: ['front','config','{{item.app_name}}']
+
+- {include: frontend_clean_and_checkout.yml, tags: ['front','exec'], when: " revision|int > 0 and inventory_hostname|search('app1') and (force == 'yes' or revision_pair != master_deployed_ver) "}
+- {include: frontend_clean_and_checkout.yml, tags: ['front','exec'], when: " revision|int > 0 and inventory_hostname|search('app2') and (force == 'yes' or revision_pair != master_deployed_ver) "}

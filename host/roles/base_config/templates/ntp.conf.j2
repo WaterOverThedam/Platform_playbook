@@ -1,0 +1,16 @@
+driftfile /var/lib/ntp/drift
+restrict default nomodify notrap nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+restrict 172.16.0.0 mask 255.255.0.0 nomodify notrap
+server time1.aliyun.com
+server ntp1.aliyun.com
+server 0.centos.pool.ntp.org
+restrict time1.aliyun.com  nomodify notrap noquery
+restrict ntp1.aliyun.com  nomodify notrap noquery
+includefile /etc/ntp/crypto/pw
+keys /etc/ntp/keys
+disable monitor
+# 没有联网只需添加以下两条即可
+server 127.127.1.0
+fudge 127.127.1.0 stratum 10

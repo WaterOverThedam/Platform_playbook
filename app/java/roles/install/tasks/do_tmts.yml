@@ -1,0 +1,120 @@
+- name: app deploy path
+  debug: var=deploy_path
+
+- name: clean java application dir
+  file:
+      path: "{{ deploy_path }}"
+      state: absent
+  tags: ['install']
+
+- name: Ensure java application directory empty
+  file:
+      path: "{{ item.path }}"
+      state: directory
+      owner: "{{ item.owner }}"
+      group: "{{ item.group }}"
+      mode: "{{ item.mode }}"
+  with_items:
+      - { path: '{{ deploy_path }}', owner: 'winning', group: 'winning', mode: '0755' }
+      - { path: '{{ deploy_path }}/launcher', owner: 'winning', group: 'winning', mode: '0755' }
+      - { path: '{{ deploy_path }}/configure', owner: 'winning', group: 'winning', mode: '0755' }
+      - { path: '{{ log_path }}', owner: 'winning', group: 'winning', mode: '0755' }
+  tags: ['install']
+
+- name: Checkout java application repository to local
+  shell: "svn checkout  {{ app_svn_path }}/modules {{ deploy_path }}/modules --username {{app_info.svn_username}} --password {{app_info.svn_password}} --non-interactive --trust-server-cert --no-auth-cache --force  warn=False"
+  register: shell_out
+  tags: ['install']
+- debug: var=shell_out.stderr_lines
+
+#- name: move jar to deploy_path
+#  shell: 'mv {{ deploy_path }}/boot/* {{ deploy_path }}/ ; rm -rf {{ deploy_path }}/boot'
+#  register: shell_out
+#  when: app_info.svn_app_jar_path != 'boot'
+#  tags: ['install']
+
+#- name: make dir patch
+#  file:
+#      path: "{{ item.path }}"
+#      state: directory
+#      owner: "{{ item.owner }}"
+#      group: "{{ item.group }}"
+#      mode: "{{ item.mode }}"
+#  when:
+#    - app_info.svn_app_jar_path == 'boot'
+#  with_items:
+#      - { path: '{{ deploy_path }}/boot/patch', owner: 'winning', group: 'winning', mode: '0755' }
+#  tags: ['install']
+
+- name: Copy standard file to dest host
+  copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "stop.sh", dest: "{{ deploy_path }}/stop.sh" }
+      - { src: "{{ app_info.application_file_name }}_{{ app_info.win_appid }}", dest: "{{ deploy_path }}/{{ app_info.application_file_name }}" }
+  ignore_errors: true
+  tags: ['install']
+
+- name: Copy launcher file to dest host
+  copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "stop.sh", dest: "{{ deploy_path }}/stop.sh" }
+      - { src: "launcher/launch-0.0.1-SNAPSHOT.jar", dest: "{{ deploy_path }}/launcher/launch-0.0.1-SNAPSHOT.jar" }
+      - { src: "configure/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
+      - { src: "configure/emrdesigner.properties", dest: "{{ deploy_path }}/configure/emrdesigner.properties" }
+      - { src: "configure/system.properties", dest: "{{ deploy_path }}/configure/system.properties" }
+      - { src: "configure/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
+      - { src: "configure/build-info.xml", dest: "{{ deploy_path }}/configure/build-info.xml" }
+      - { src: "configure/build-metadata.xml", dest: "{{ deploy_path }}/configure/build-metadata.xml" }
+      - { src: "configure/cleanIlog.properties", dest: "{{ deploy_path }}/configure/cleanIlog.properties" }
+      - { src: "configure/logback.xml", dest: "{{ deploy_path }}/configure/logback.xml" }
+      - { src: "configure/lui_params.json", dest: "{{ deploy_path }}/configure/lui_params.json" }
+  tags: ['install']
+
+- name: wirte shell script file to dest
+  template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "startup.sh.j2", dest: "{{ deploy_path }}/startup.sh" }
+  tags: ['install']
+
+- name: stop java application
+  shell: './stop.sh'
+  args:
+      chdir: "{{ deploy_path }}"
+  register: stop_out
+  tags: ['install']
+- debug: var=stop_out.stdout
+
+- name: startup java application
+  shell: './startup.sh'
+  args:
+      chdir: "{{ deploy_path }}"
+  tags: ['install']
+
+- name: wait 3s
+  pause: seconds=3
+  tags: ['install']
+
+
+- name: tail tmts app console.log
+  shell: 'tail -20 {{ deploy_path }}/ms_logs/ms_all.log'
+  register: app_console_out
+  ignore_errors: true
+  tags: ['install']
+
+- debug: var=app_console_out.stdout
+

@@ -1,0 +1,7 @@
+---
+- name: INSTALL minio
+  hosts: "mids_first"
+  gather_facts: False
+  become: yes
+  roles:
+    - {role: install_minio, tags: ['minio']}

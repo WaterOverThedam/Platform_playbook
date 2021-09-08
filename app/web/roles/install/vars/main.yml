@@ -1,0 +1,13 @@
+---
+# 前端部署路径
+deploy_path: "{{web_info.deployAddr}}"
+
+#运行路径
+run_path: "{{web_info.runFolder}}"
+
+#默认本地安装包部署
+install_type: "{{web_info.deployType}}"
+
+package_path: "{{web_info.packagePath}}"
+
+package_name: "{{web_info.packageName}}"

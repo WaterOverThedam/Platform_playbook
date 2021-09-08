@@ -1,0 +1,286 @@
+---
+- name: mkdir winning directory
+  file:
+      path: "{{ item.path }}"
+      state: directory
+      recurse: yes
+      owner: "{{ item.owner }}"
+      group: "{{ item.group }}"
+      mode: "{{ item.mode }}"
+  with_items:
+      - { path: '/winning/app', owner: 'winning', group: 'winning', mode: '0755' }
+      - { path: '/winning/log', owner: 'winning', group: 'winning', mode: '0755' }
+
+- name: cron for sync time
+  cron:
+    name: "synchronization time"
+    job: "/usr/sbin/ntpdate {{ ntp_server }}"
+    minute: "*/5"
+    state: present
+  notify:
+    - restart crond
+  tags: ['sync_time','crond']
+
+- name: cron for log clean on bmts_app
+  cron:
+    name: "clean /winning/log before 10 day"
+    weekday: "0"
+    minute: "45"
+    hour: "2"
+    job: "/usr/bin/find /winning/log/ -type f -mtime +10 | xargs rm -f"
+    state: present
+  when: "inventory_hostname|regex_search('app') and not inventory_hostname|regex_search('dmts')"
+  notify:
+    - restart crond
+  tags: ['clean_log','crond']
+
+- name: cron for log clean on dmts_app
+  cron:
+    name: "clean /winning/log before 20 day"
+    weekday: "0"
+    minute: "45"
+    hour: "2"
+    job: "/usr/bin/find /winning/dcs -type f -name '*.log' -mtime +20 | xargs rm -f"
+    state: present
+  when: "inventory_hostname|regex_search('dmts_app')"
+  notify:
+    - restart crond
+  tags: ['clean_log','crond']
+##日志收集目录定期清理
+- name: cron for log clean on rsyslog
+  cron:
+    name: "clean /winning/rsyslog before 30 day"
+    weekday: "0"
+    minute: "45"
+    hour: "2"
+    job: "find /winning/rsyslog/  -mtime +30 -delete"
+    state: present
+  delegate_to: localhost
+  run_once: True
+  notify:
+    - restart crond
+  tags: ['rsyslog','clean_log','crond']
+
+- name: make workdir
+  file: 'dest={{item}} mode=0755 owner=winning group=winning recurse=yes'
+  loop: [/tmp/pkg, "{{agent_dir}}"]
+  tags: install_agent
+
+- name: copy config files to server
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+  with_items:
+    - { src: 'sshd_config.j2',  dest: '/etc/ssh/sshd_config' }
+    - { src: 'sysctl.conf.j2',  dest: '/etc/sysctl.conf' }
+    - { src: 'bashrc.j2',       dest: '/etc/bashrc' }
+    - { src: 'limits.conf.j2',  dest: '/etc/security/limits.conf' }
+    - { src: '20-nproc.conf.j2',dest: '/etc/security/limits.d/20-nproc.conf' }
+    - { src: 'rsyslog.conf.j2', dest: '/etc/rsyslog.conf' }
+  tags: ['copy_config','sshd_tunning']
+
+- name: install public packages
+  yum:
+    update_cache: yes
+    name:
+      - vim
+      - at
+      - zip
+      - dos2unix
+      - unzip
+      - ntpdate
+      - htop
+      - rsync
+      - wget
+      - lrzsz
+      - crontabs
+      - iftop
+      - telnet
+      - traceroute
+      - sysstat
+      - net-tools
+      - bc
+      - tree
+      - nc
+      - jdk
+      - hping3
+      - subversion
+      - dstat
+      - strace
+      - ltrace
+      - iotop
+      - lsof
+      - openssh
+    enablerepo: winning
+    state: present
+
+- name: copy and unarchive agent bin files
+  unarchive: 'src={{item.src}} dest={{item.dest}} copy=yes owner=winning group=winning mode=0755 copy=yes'
+  with_items:
+    - { src: '/root/winning_source/agent/agent.zip',  dest: '{{agent_dir}}' }
+    - { src: '/root/winning_source/expect/expect.zip',  dest: '/tmp/pkg' }
+  tags: install_agent
+
+- name: copy agentmon config files to server
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    force: yes
+    owner: winning
+    group: winning
+    mode: 0755
+  with_items:
+    - { src: 'agentmon.j2',dest: '/etc/init.d/agentmon' }
+    - { src: 'cfg.json.j2',dest: '{{agent_dir}}/cfg.json' }
+    - { src: 'plugin/time/30_timeoffset.sh',dest: '{{agent_dir}}/plugin/time/' }
+    - { src: 'plugin/time/30_ntpserver.sh',dest: '{{agent_dir}}/plugin/time/' }
+  tags: ['install_agent','install_agent_config']
+
+- name: create service for agentmon
+  shell: "chkconfig --add agentmon"
+  tags: install_agent
+
+- name: enable agentmon
+  service: name=agentmon state=restarted enabled=yes
+  tags: install_agent
+
+- name: copy local pkgs for ncdu tcping and so on
+  copy: 'src=/root/winning_source/{{item}} dest=/tmp/pkg mode=0777 force=yes'
+  with_items:
+    - tcping/tcping-1.3.5-13.el7.x86_64.rpm
+    - ncdu/ncdu-1.13-1.el7.x86_64.rpm
+- name: get all local pkgList
+  shell: ls /tmp/pkg/*.rpm
+  register: res
+- name: install local pkgs
+  yum:
+    name: "{{res.stdout_lines}}"
+    state: present
+
+- name: set hostname for worker nodes
+  hostname: name="{{inventory_hostname}}"
+  when: "inventory_hostname|regex_search('mid') or hostname_override =='yes'"
+  tags: ['hostname']
+
+- name: set timezone
+  file:
+    src: /usr/share/zoneinfo/Asia/Shanghai
+    dest: /etc/localtime
+    state: link
+
+- name: set tunning sshd config for ops host
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^GSSAPIAuthentication',line: 'GSSAPIAuthentication no' }
+    - { regexp: '^#?UseDNS',line: 'UseDNS no' }
+    - { regexp: 'PubkeyAuthentication',line: 'PubkeyAuthentication yes'}
+  notify:
+    - restart sshd
+  delegate_to: localhost
+  run_once: True
+  tags: 'sshd_tunning'
+- name: set tunning ssh config for ops host
+  lineinfile:
+    dest: /etc/ssh/ssh_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: 'ForwardAgent',line: 'ForwardAgent yes'}
+  delegate_to: localhost
+  run_once: True
+  tags: 'ssh_tunning'
+##端口改成5141避免与平台java流量收集程序冲突
+- name: modify rsyslog reception port
+  replace:
+    path: /etc/rsyslog.conf
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '(.*) 514(.*)',line: '\1 5141'}
+  delegate_to: localhost
+  run_once: True
+  notify:
+    - restart rsyslog
+  tags: ['rsyslog']
+
+- name: selinux remove for localhost
+  selinux: state=disabled
+  delegate_to: localhost
+  run_once: True
+  tags: selinux_remove
+
+#script支持不copy直接执行
+- name: upgrade security 安全加固....
+  script: "security_lv3.sh"
+  tags: security_lv3
+
+- name: miniService to stop
+  shell: >
+   find "{{app_path.app}}" -name startup.sh|awk -F "/startup.sh" '{print "echo "NR";cd "$1";./stop.sh"}' |sh  &> /tmp/stop.log
+  when: app_stop
+  tags: ['switch']
+##如查使用不同主机不同随机密码策略，此任务不执行  
+- name: HOSTS switch login user to winning
+  local_action: "shell sh {{role_path}}/files/change2winning.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{inventory_hostname}}"
+  when: ansible_winning_password == 'Win.2020'
+  tags: ['switch','change_pass']
+
+- name: test app dir
+  stat: "path={{app_path.app}}"
+  register: result_app_stat
+  tags: ['switch']
+- name: change app owner
+  file: "dest={{item}} owner=winning group=winning recurse=yes"
+  loop: ['{{app_path.log}}','{{app_path.app}}']
+  when: result_app_stat.stat.exists == True
+  tags: ['switch']
+
+- name: install rsync
+  local_action: yum name=rsync state=present
+  run_once: true
+  tags: ['source']
+- name: set winning downloadable file
+  local_action: copy src=source dest='{{product_path}}'
+  run_once: true
+  tags: ['source']
+
+- name: selinux remove ....
+  selinux: state=disabled
+  tags: selinux_remove
+
+- name: tee tmp tomcat
+  shell: >
+      echo 'X /tmp/tomcat.*' | sudo tee -a /usr/lib/tmpfiles.d/tmp.conf
+  tags: ['tee_tmp']
+
+#运管平台和工作节点都执行的任务
+- {include: all_host_task.yml, tags: "ops", delegate_to: localhost, run_once: true}
+- {include: all_host_task.yml, tags: "worker" }
+
+#中间件主机内存在于20G,去除swap
+- block:
+    - name: remove swap when memory > 20G for mid hosts
+      shell: |
+        swapoff --all;
+    - mount: path="swap" state="absent"
+  tags: ['swapoff']
+  when: "inventory_hostname|regex_search('mid') and not inventory_hostname|regex_search('mid_app') and ansible_memtotal_mb > 20480 or inventory_hostname|regex_search('dmts[_-]app')"
+- name: restart server
+  shell: 'sleep 1 && shutdown -r now "Reboot triggered by Ansible" && sleep 1'
+  async: 4
+  poll: 0
+  ignore_errors: true
+  become: true
+  tags: os_restart
+
+- name: wait for server to come back
+  wait_for:
+    port: 22
+    host: '{{ ansible_ssh_host|default(inventory_hostname) }}'
+    search_regex: OpenSSH
+    delay: 10
+  connection: local
+  tags: os_restart

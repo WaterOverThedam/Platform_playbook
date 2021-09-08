@@ -1,0 +1,1 @@
+CONSUL_OPTS="agent -server -ui -bootstrap-expect={{ HOST_COUNT }} -data-dir={{ data_dir }} -config-dir={{ conf_dir }} -node={{ soft_host }} -advertise={{ soft_host }} -bind=0.0.0.0 -client=0.0.0.0"

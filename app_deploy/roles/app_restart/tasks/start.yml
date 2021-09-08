@@ -1,0 +1,6 @@
+---
+
+- name: "starting {{item.1}}"
+  shell: './startup.sh'
+  args:
+    chdir: '{{item.1}}'

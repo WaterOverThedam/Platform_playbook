@@ -1,0 +1,10 @@
+---
+- name: 初始化后端应用
+  hosts: app
+  gather_facts: False
+  vars_files:
+      - values.yml
+  roles:
+      - {role: install, tags: ['install']}
+      #- {role: install, tags: ['install']}
+

@@ -1,0 +1,42 @@
+---
+- name: install {{ soft_name }}
+  yum:
+    update_cache: yes
+    name: '{{ soft_name }}'
+    enablerepo: winning
+    state: present
+
+- name: create {{ tmp_conf }}
+  file:
+    path: '{{ tmp_conf }}'
+    state: directory
+
+- name: config {{ soft_name }}
+  template: src=keepalived.conf.j2 dest={{ tmp_conf }}/global_conf
+
+- name: config {{ soft_port }}.conf
+  template: src=keepalived.append.j2 dest={{ tmp_conf }}/vrrp_conf_{{ soft_port }}
+
+- name: assemble {{ soft_name }} config file
+  assemble:
+    src: '{{ tmp_conf }}/'
+    dest: /etc/keepalived/keepalived.conf
+
+
+- name: priority adjust the same
+  replace:
+    path: /etc/keepalived/keepalived.conf
+    regexp: "priority 120/"
+    replace: "priority 100"
+  tags: priority_adjust
+
+- name: restart {{ soft_name }} in order
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  delegate_to: "{{item}}"
+  loop: "{{groups.web_first_two}}"
+  run_once: true
+  tags: ['priority_adjust','restart']

@@ -1,0 +1,17 @@
+---
+
+- name: clear apps'working directory
+  file: "path={{item.destPath}}/boot state=absent"
+  loop: "{{params.backend_resources}}"
+
+- name: config start.sh script
+  lineinfile:
+    dest: "{{item.destPath}}/startup.sh"
+    regexp: "export CONSUL_TAG"
+    line: 'export CONSUL_TAG="-Dspring.cloud.consul.discovery.tags=W-FLOW={{params.W_FLOW}},W-SEQ={{params.W_SEQ}}"'
+  loop: "{{backend_resources}}"
+  when: "mode_change"
+
+- name: get svn codes for apps
+  subversion: "repo={{item.downloadUrl}}/boot dest={{item.destPath}}/boot username={{svn.user}} password={{svn.pass}} revision={{item.revision}} force=yes"
+  loop: "{{backend_resources}}"

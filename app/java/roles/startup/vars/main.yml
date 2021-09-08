@@ -1,0 +1,8 @@
+---
+# The application deploy path
+deploy_path: "/winning/app/{{ app_info.repository_name }}/{{ app_info.win_app_version }}/{{ app_info.win_port }}"
+
+# Java application with logback out file path
+log_path: "/winning/log/{{ app_info.win_appid }}-{{ app_info.win_port }}/logs"
+
+log_wdsfhir_path: "/winning/log/{{ app_info.win_port }}/logs/hl7.his/root.log"

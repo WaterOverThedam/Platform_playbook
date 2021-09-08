@@ -1,0 +1,13 @@
+---
+- name: INSTALL nginx
+  hosts: "web_targets"
+  become: yes
+  roles:
+    - {role: install_nginx, tags: ['nginx']}
+
+- name: INSTALL keepAlived
+  hosts: "web_first_two"
+  gather_facts: False
+  become: yes
+  roles:
+    - {role: install_keepalived, tags: ['keepalived'], when: groups.web_first_two|length>1}

@@ -1,0 +1,26 @@
+---
+- name: install {{ soft_name }}
+  yum:
+    update_cache: yes
+    name: '{{ soft_name }}'
+    enablerepo: winning
+    state: present
+
+- name: memory config
+  replace:
+    path: /winning/winmid/xxl-job/startup.sh
+    regexp: '-Xmx4g -Xms4g'
+    replace: '-Xmx1g -Xms1g'
+  when: ansible_memtotal_mb < 5000
+
+- {include: init_db.yml, tags: ['init_db']}
+
+- name: restart {{ soft_name }}
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+
+

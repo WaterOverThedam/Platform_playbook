@@ -1,0 +1,18 @@
+# 多个应用服务一起部署
+- { include: do.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'ansidepl',
+    tags: ['install']
+  }
+# his服务部署
+- { include: do.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'wdshisdepl',
+    tags: ['install']
+}
+# tmts服务部署
+- { include: do_tmts.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'tmtsdepl',
+    tags: ['install']
+}

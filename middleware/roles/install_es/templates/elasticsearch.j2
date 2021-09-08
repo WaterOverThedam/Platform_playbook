@@ -1,0 +1,15 @@
+cluster.name: winning_{{ soft_name }}
+node.name: {{inventory_hostname}}
+path.data: {{ data_dir }}
+path.logs: {{ logs_dir }}
+network.host: 0.0.0.0
+http.port: {{ soft_port }}
+transport.tcp.port: 19300
+discovery.seed_hosts: ['{{mid_target_ips_tmp.results|map(attribute='ansible_facts.ip')|product(['19300'])|map('join',':')|join("','")}}']
+cluster.initial_master_nodes: [{{groups.mids_first_three|join(",")}}]
+discovery.zen.minimum_master_nodes: 2
+
+# 允许跨域请求
+http.cors.enabled: true   
+http.cors.allow-origin: '*'
+http.cors.allow-credentials: true

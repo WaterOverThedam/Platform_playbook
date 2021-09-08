@@ -1,0 +1,6 @@
+# 多个应用服务一起操作
+- { include: do.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info } ,
+    when: app_info.hostIp == ansible_ssh_host,
+    tags: ['uninstall']
+  }

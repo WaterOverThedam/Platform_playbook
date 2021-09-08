@@ -1,0 +1,12 @@
+---
+soft_name: "minio"
+soft_host: "{{ ansible_ssh_host }}"
+soft_port: 9000
+base_dir: "/winning/winmid/{{ soft_name }}"
+conf_dir: "{{ base_dir }}/conf"
+data_dir: "{{ base_dir }}/data"
+win_mid1: "{{hostvars.mid1.ansible_ssh_host}}"
+win_mid2: "{{hostvars.mid2.ansible_ssh_host}}"
+win_mid3: "{{hostvars.mid3.ansible_ssh_host}}"
+acc_key: "www.winning.com.cn"
+sec_key: "www.winning.com.cn"

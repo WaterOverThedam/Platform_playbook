@@ -1,0 +1,7 @@
+---
+- name: INSTALL redis
+  hosts: "mid_targets"
+  gather_facts: False
+  become: yes
+  roles:
+    - {role: install_redis, tags: ['redis']}

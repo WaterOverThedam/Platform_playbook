@@ -1,0 +1,34 @@
+---
+- name: set jvm memory to 1G if totalmem less than 10G
+  replace:
+    dest: '{{ conf_dir }}/jvm.options'
+    after: '# Xmx represents the maximum size'
+    regexp: '\d+g$'
+    replace: '1g'
+  when: ansible_memtotal_mb < 10000
+
+- name: set jvm memory to 4G if totalmem great than 16G and less than 48G
+  replace:
+    dest: '{{ conf_dir }}/jvm.options'
+    after: '# Xmx represents the maximum size'
+    regexp: '\d+g$'
+    replace: '4g'
+  when: ansible_memtotal_mb > 10000 and ansible_memtotal_mb <= 16000
+
+- name: set jvm memory to 8G if totalmem great than 16G and less than 48G
+  replace:
+    dest: '{{ conf_dir }}/jvm.options'
+    after: '# Xmx represents the maximum size'
+    regexp: '\d+g$'
+    replace: '4g'
+  when: ansible_memtotal_mb > 16000 and ansible_memtotal_mb <= 48000
+
+- name: set jvm memory to 16G if totalmem great than 48G
+  replace:
+    dest: '{{ conf_dir }}/jvm.options'
+    after: '# Xmx represents the maximum size'
+    regexp: '\d+g$'
+    replace: '6g'
+  when: ansible_memtotal_mb > 48000  
+
+

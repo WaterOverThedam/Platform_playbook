@@ -1,0 +1,7 @@
+---
+- name: prepare
+  hosts: '*mid*:*app*'
+  gather_facts: False
+  become: yes
+  roles:
+    - {role: init_target_hosts, tags: ['targets']}

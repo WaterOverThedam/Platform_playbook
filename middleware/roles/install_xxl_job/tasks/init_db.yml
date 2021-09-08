@@ -1,0 +1,8 @@
+- name: copy init sql
+  copy: src=init_sql dest=/tmp mode=0755
+
+- name: execute sql
+  shell: >
+    ./init.sh {{soid}} >> tmp.log
+  args:
+    chdir: /tmp/init_sql

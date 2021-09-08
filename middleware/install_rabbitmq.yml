@@ -1,0 +1,7 @@
+---
+- name: INSTALL rabbitmq cluster
+  hosts: "mids_first_three"
+  gather_facts: False
+  become: yes
+  roles:
+    - {role: install_rabbitmq, tags: ['rabbitmq','mq']}

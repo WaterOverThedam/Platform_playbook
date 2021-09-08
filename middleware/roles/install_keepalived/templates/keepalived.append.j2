@@ -1,0 +1,42 @@
+vrrp_script check_port_{{ soft_port }} {
+    script "/usr/bin/nc -4zv localhost {{ soft_port }}"
+    weight -60
+}
+
+{% if first == inventory_hostname %}
+vrrp_instance VI_{{ soft_port }} {
+    state MASTER
+    interface {{ interface }}
+    virtual_router_id 11
+    priority 120
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 2019
+    }
+    virtual_ipaddress {
+        {{ ngx_vip }}
+    }
+    track_script {
+        check_port_{{ soft_port }}
+    }
+}
+{% else %}
+vrrp_instance VI_{{ soft_port }} {
+    state BACKUP
+    interface {{ interface }}
+    virtual_router_id 11
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 2019
+    }
+    virtual_ipaddress {
+        {{ ngx_vip }}
+    }
+    track_script {
+        check_port_{{ soft_port }}
+    }
+}
+{% endif %}

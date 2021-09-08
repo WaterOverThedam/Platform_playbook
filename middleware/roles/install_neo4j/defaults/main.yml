@@ -1,0 +1,4 @@
+---
+soft_name: "neo4j"
+soft_host: "{{ ansible_ssh_host }}"
+soft_port: 7474

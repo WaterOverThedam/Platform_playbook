@@ -1,0 +1,11 @@
+---
+- name: check params given
+  hosts: '*app*:!*dmts_app*'
+  gather_facts: False
+  vars:
+    svn:
+      user: "admin"
+      pass: "11"
+    params: "{{lookup('file','{{playbook_dir}}/params.json')|from_json}}"
+  roles:
+    - {role: upgrade_app, tags: ['app','apps']}

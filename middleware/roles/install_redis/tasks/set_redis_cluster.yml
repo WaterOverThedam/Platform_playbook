@@ -1,0 +1,32 @@
+- name: stop default redis
+  ignore_errors: yes
+  systemd:
+    name: "{{ soft_name }}"
+    state: stopped
+    enabled: no
+
+- name: config {{ soft_name }} cluster file
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+  loop:
+    - { src: 'redis_6381.conf.j2', dest: '{{ conf_dir }}/redis_6381.conf' }
+    - { src: 'redis_6382.conf.j2', dest: '{{ conf_dir }}/redis_6382.conf' }
+
+- name: restart {{ soft_name }}1
+  systemd:
+    name: "{{ soft_name }}1"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: restart {{ soft_name }}2
+  systemd:
+    name: "{{ soft_name }}2"
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: create cluster
+  shell: bash {{ ctl_scpt }} create_cluster {{ cluster_nodes }}
+  when: inventory_hostname == groups.mids_first_three[0]

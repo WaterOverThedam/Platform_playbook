@@ -1,0 +1,8 @@
+---
+- name: INSTALL mariadb xxl-job
+  hosts: "mids_first"
+  gather_facts: True
+  become: yes
+  roles:
+    - {role: install_mariadb, tags: ['mariadb']}
+    - {role: install_xxl_job, tags: ['xxl-job']}

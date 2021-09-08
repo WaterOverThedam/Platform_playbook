@@ -1,0 +1,47 @@
+---
+- name: install {{ soft_name }}
+  yum:
+    update_cache: yes
+    name: '{{ soft_name }}'
+    enablerepo: winning
+    state: present
+
+- name: config {{ soft_name }}
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+  loop:
+    - { src: 'elasticsearch.j2', dest: '{{ conf_dir }}/elasticsearch.yml' }
+  tags: config
+
+#- name: sysctl参数优化
+#  blockinfile:
+#    path: /etc/sysctl.conf
+#    block: |
+#      vm.max_map_count = 655360
+
+- {include: mid_app_config.yml,when: inventory_hostname|regex_search('mid_app'), tags: ['memory','config']}
+- {include: mid_config.yml, when: not inventory_hostname|regex_search('mid_app'), tags: ['memory','config']}
+
+- name: restart {{ soft_name }}
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  tags: restart
+
+- name: '【wait for es port 19200 open】'
+  uri:
+    url: "http://localhost:19200/_cat/nodes"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 25
+  delay: 10
+  when: inventory_hostname == groups.mids_first_three[0]
+
+- name: execute es tunning script
+  script: "es_tunning.sh"
+  when: inventory_hostname == groups.mids_first_three[0]
+  tags: es_tunning

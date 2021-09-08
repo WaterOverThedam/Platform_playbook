@@ -1,0 +1,11 @@
+include /winning/winmid/redis/conf/common.conf
+port 6381
+pidfile /winning/winmid/redis/logs/redis_6381.pid
+logfile /winning/winmid/redis/logs/redis_6381.log
+dir /winning/winmid/redis/data
+appendfilename appendonly_6381.aof
+
+masterauth winning.2019
+cluster-enabled yes
+cluster-config-file /winning/winmid/redis/data/nodes_6381.conf
+cluster-node-timeout 2000

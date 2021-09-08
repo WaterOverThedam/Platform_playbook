@@ -1,0 +1,18 @@
+---
+- name: Statistics CPU Memory Disk Utilization
+  hosts: all
+  become: no
+  remote_user: root
+  gather_facts: no
+  tasks:
+    - name: "inspection"
+      shell: |
+        runlevel | awk 'NR==1{printf "runlevel: %s\n", $2}'
+        top -bn1 | grep Cpu |awk '{printf "cpuused: %.2f%%\n", 100-$8 }'
+        ulimit -n | awk 'NR==1{printf "ulimit: %s\n", $1}'
+        sudo -l -U winning | awk 'END{print "sudoerinfo:"$0}'
+        cat /etc/redhat-release | awk 'END{print "sysversion:",$0}'
+        systemctl status firewalld | grep Active | awk 'END{print}'
+      register: out
+    - debug: var=out.stdout_lines
+

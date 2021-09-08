@@ -1,0 +1,10 @@
+---
+- name: init new system
+  hosts: 'all'
+  gather_facts: False
+  tasks:
+    - ping:
+      tags: ['ping']
+    - debug:
+        var: "h2_db_name"
+

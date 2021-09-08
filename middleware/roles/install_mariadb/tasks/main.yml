@@ -1,0 +1,24 @@
+---
+- name: install {{ soft_name }}
+  yum:
+    update_cache: yes
+    name: '{{ soft_name }}'
+    enablerepo: winning
+    state: present
+
+- name: set tunning sshd config for ops host
+  lineinfile:
+    dest: /etc/my.cnf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^max_connections',line: 'max_connections=8500' }
+
+- name: restart {{ soft_name }}
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+

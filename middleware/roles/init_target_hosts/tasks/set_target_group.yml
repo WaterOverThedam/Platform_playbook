@@ -1,0 +1,74 @@
+---
+
+##这里的search其实是regex_search；match匹配需要完整模式，search只需要满足版本，reject是取反
+- name: set app targets
+  set_fact: "app_targets={{groups[group_name]|select('search','(mid_)?app')|list}}"
+- name: debug app info
+  debug: var=app_targets verbosity=0
+
+- name: set mid targets
+  set_fact: "mid_targets={{groups[group_name]|select('match','.*mid.*')|reject('search','dmts')|list}}"
+- name: debug mid info
+  debug: var=mid_targets verbosity=0
+
+- name: set web targets
+  set_fact: "web_targets={{groups[group_name]|select('search','web')|list}}"
+- name: debug web info
+  debug: var=web_targets verbosity=0
+
+- name: get deployable cluster middleware host numbers
+  shell: "for i in {1..{{mid_targets|length}}};do if [ $((($i%2))) -ne 0 ];then echo $i ;fi; done|awk 'END {print}' "
+  delegate_to: localhost
+  register: mid_num
+  failed_when: "mid_targets|length == 0"
+
+# - debug: 'msg="{{ 2 if target_num.stdout|int>2 else target_num.stdout|int}}xx"'
+- name: set mid_targets group
+  add_host: name={{ item }} group=mid_targets
+  loop: "{{mid_targets}}"
+
+- name: set app_targets group
+  add_host: name={{ item }} group=app_targets
+  loop: "{{app_targets}}"
+
+- name: set web_targets group
+  add_host: name={{ item }} group=web_targets
+  loop: "{{web_targets}}"
+
+- name: set web_first_two 
+  set_fact: "web_first_two={{web_targets[:(2 if web_targets|length>2 else web_targets|length)]}}"
+  tags: ['web_targets']
+- name: set web_first_two group
+  add_host: name="{{item}}" group=web_first_two
+  loop: "{{web_first_two}}"
+  tags: ['web_targets']
+
+
+- name: set mids_first_three group
+  add_host: name="{{item}}" group=mids_first_three
+  loop: "{{mid_targets[:(3 if mid_targets|length>3 else mid_targets|length)]}}"
+  when: mid_targets
+  tags: ['app_targets']
+
+- name: set mids_first group
+  add_host: name="{{mid_targets[0]}}" group=mids_first
+  when: mid_targets
+
+- name: gen mid_target ips
+  set_fact: ip='{{hostvars[item].ansible_ssh_host}}'
+  with_items: '{{mid_targets}}'
+  when: mid_targets
+  register: mid_target_ips_tmp
+
+- name: set sql
+  set_fact:
+    soid_sql: "select HOSPITAL_SOID from TNT_TENANT;"
+
+- name: get h2 param
+  #与host下的脚本相同，直接调用
+  set_fact:
+    soid: "{{ lookup('pipe','sh {{role_path}}/../../../host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{soid_sql}}') }}"
+  failed_when: soid == ''
+
+
+

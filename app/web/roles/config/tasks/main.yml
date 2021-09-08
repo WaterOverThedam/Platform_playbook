@@ -1,0 +1,5 @@
+# 多个服务一起部署
+- { include: do.yml, loop: '{{ web_infos }}',
+    loop_control: { loop_var: web_info },
+    tags: ['config']
+}

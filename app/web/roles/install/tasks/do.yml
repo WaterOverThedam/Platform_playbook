@@ -1,0 +1,136 @@
+- name: 删除历史文件
+  file:
+      path: "{{ run_path }}"
+      state: absent
+  tags: ['install']
+
+# ensure install path exists and ensure the derectory mode 0755
+- name: 生成文件夹
+  file:
+      path: "{{ run_path }}"
+      state: directory
+      mode: 0755
+  tags: ['install']
+
+#- name: wirte nginx config to dest
+#  template:
+#    src: "{{ item.src }}"
+#    dest: "{{ item.dest }}"
+#    mode: 0755
+#  with_items:
+#    - { src: 'nginx.j2', dest: "/winning/winmid/nginx/conf/default.d/{{ repository_name }}.conf" }
+
+- name: 远程安装包下载
+  uri:
+      url: "{{ package_path }}"
+      dest: "{{ deploy_path }}"
+  when: install_type == "remote"
+  tags: ['install']
+
+- name: 安装包解压
+  unarchive:
+      src: "{{ deploy_path }}/{{ package_name }}"
+      dest: "{{ deploy_path }}"
+      remote_src: yes
+  when: install_type == "remote"
+  tags: ['install']
+
+- name: 删除下载的安装包
+  file:
+      path: "{{ deploy_path }}/{{ package_name }}"
+      state: absent
+      force: true
+  when: install_type == "remote"
+  tags: ['install']
+
+- name: 本地部署方式，部署包解压到部署文件夹下
+  unarchive:
+      src: "{{package_path}}"
+      dest: "{{ deploy_path }}"
+  when: install_type == 'local'
+  tags: ['install']
+
+#- name: svn部署方式，从svn仓库拉取到部署文件夹下
+#  subversion:
+#      repo: "{{ web_info.svnPath }}"
+#      dest: "{{ deploy_path }}"
+#      username: "{{ web_info.svnUsername }}"
+#      password: "{{ web_info.svnPass }}"
+#      in_place: "yes"
+#      force: "yes"
+#  environment:
+#      LC_ALL: "zh_CN.UTF-8"
+#  when: install_type == 'svn'
+#  tags: ['install']
+
+- name: svn部署方式，从svn仓库拉取到部署文件夹下
+  shell: "svn checkout  {{web_info.svnPath }} {{ deploy_path }} --username {{web_info.svnUsername}} --password {{web_info.svnPass}} --non-interactive --trust-server-cert --no-auth-cache --force  warn=False"
+  register: shell_out
+  when: install_type == 'svn'
+  tags: ['install']
+- debug: var=shell_out.stderr_lines
+
+- name: 前端nginx配置部署
+  copy:
+      content: "{{ item.confstr }}"
+      dest: "/winning/winmid/nginx/conf/default.d/{{ item.programname }}.conf"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items: "{{web_info.nginxBacks}}"
+  no_log: true
+  tags: ['install']
+
+- name: 后端nginx配置部署
+  copy:
+      content: "{{ item.confstr }}"
+      dest: "/winning/winmid/nginx/conf/default.d/{{ item.code }}.conf"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items: "{{web_info.nginxLocations}}"
+  no_log: true
+  tags: ['install']
+
+- name: upstream配置部署
+  copy:
+      content: "{{ item.confstr }}"
+      dest: "/winning/winmid/nginx/conf/vhost/{{ item.code }}.conf"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items: "{{web_info.upstreams}}"
+  no_log: true
+  tags: ['install']
+
+- name: 删除http.conf文件
+  file:
+      path: "/winning/winmid/nginx/conf/vhost/https.conf"
+      state: absent
+  tags: ['install']
+
+- name: 创建http.conf文件
+  file:
+      path: "/winning/winmid/nginx/conf/vhost/https.conf"
+      state: touch
+      owner: winning
+      group: winning
+      mode: 0755
+  tags: ['install']
+
+- name: 端口监控配置部署
+  lineinfile:
+      line: "{{ item.confstr }}"
+      dest: /winning/winmid/nginx/conf/vhost/https.conf
+  with_items: "{{web_info.nginxFrontBacks}}"
+  no_log: true
+  tags: ['install']
+
+#- name: restart nginx
+#  service: name=nginx state=restarted
+#  tags: ['install']
+- name: nginx服务重启
+  shell: 'sudo systemctl restart nginx;sudo systemctl reload nginx'
+  tags: ['install']
+
+

@@ -1,0 +1,17 @@
+---
+- name: init new system
+  hosts: 'all:!cloudhost:!ops*'
+  vars:
+    err_msgs: []
+  pre_tasks:
+    - { include_tasks: env_check.yml,
+        when: ansible_env_check|default('true') == 'true'
+      }
+    - name: '环境不符合要求，则强制中止任务'
+      fail: msg={{err_msgs|join(" ")}}
+      when: err_msgs|length > 0
+  roles:
+    - {role: get_parameters, run_once: True, tags: ['params','get_parameters'], become: yes}
+    - {role: os_init, become: yes}
+  post_tasks:
+    - debug: "msg='{{inventory_hostname}}-主机初始化完成'"

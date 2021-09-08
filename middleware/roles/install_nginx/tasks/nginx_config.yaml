@@ -1,0 +1,29 @@
+- name: configs upstream
+  template: src={{item}} dest=/winning/winmid/nginx/conf/vhost/ owner=winning group=winning mode=0755 force=yes
+  loop: ['neo4j.conf','oss.conf','winning-cloud-gateway.conf']
+
+- name: config oss proxy
+  template: src=default_oss.conf dest=/winning/winmid/nginx/conf/default.d owner=winning group=winning mode=0755 force=yes
+
+- name: add http listener
+  blockinfile:
+    block: "{{ lookup('file', '{{role_path}}/files/https_fragments.conf') }}"
+    dest: /winning/winmid/nginx/conf/vhost/https.conf
+
+- name: change log host ip
+  lineinfile:
+     path: /winning/winmid/nginx/conf/nginx.conf
+     regex: '^    access_log'
+     line: "    access_log syslog:server={{ansible_env.SSH_CLIENT.split(' ')[0]}}:514 main;"
+
+- name: set winning permission
+  file:
+      path: "{{ item.path }}"
+      state: directory
+      recurse: yes
+      owner: "{{ item.owner }}"
+      group: "{{ item.group }}"
+  with_items:
+      - { path: '/winning/winmid/nginx/conf', owner: 'winning', group: 'winning' }
+
+

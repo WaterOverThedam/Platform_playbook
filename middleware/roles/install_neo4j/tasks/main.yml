@@ -1,0 +1,30 @@
+---
+- name: install {{ soft_name }}
+  yum:
+    update_cache: yes
+    name: '{{ soft_name }}'
+    enablerepo: winning
+    state: present
+  notify: restart {{ soft_name }}
+
+- name: get database zip file
+  register: neo4j_db_path
+  shell: "find /winning/winning_product /winning_product  -name '*databases-*zip'|sort -r|awk 'NR==1';"
+  run_once: true
+  delegate_to: localhost
+  tags: ['update_db']
+
+- name: backup old database
+  shell: "cd /winning/winmid/neo4j/data && [ -d databases ] && mv databases/ databases_$(date +%Y%m%d%H) || /bin/true;"
+  when: neo4j_db_path.stdout != ''
+  tags: ['update_db']
+
+- name: deploy new database
+  unarchive: "src={{neo4j_db_path.stdout}} dest=/winning/winmid/neo4j/data"
+  when: neo4j_db_path.stdout != ''
+  tags: ['update_db']
+
+- name: change dir owner
+  file: "dest=/winning/winmid/neo4j/data/databases recurse=yes owner=winning group=winning mode=0755"
+  tags: ['update_db']
+  notify: restart {{ soft_name }}

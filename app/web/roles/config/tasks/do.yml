@@ -1,0 +1,26 @@
+- name: 前端nginx配置部署
+  copy:
+      content: "{{ item.confstr }}"
+      dest: "/winning/winmid/nginx/conf/default.d/{{ item.programname }}.conf"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items: "{{web_info.nginxBacks}}"
+  no_log: true
+  tags: ['config']
+
+- name: 后端nginx配置部署
+  copy:
+      content: "{{ item.confstr }}"
+      dest: "/winning/winmid/nginx/conf/default.d/{{ item.code }}.conf"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items: "{{web_info.nginxLocations}}"
+  no_log: true
+  tags: ['config']
+
+- name: nginx服务重启
+  shell: 'sudo systemctl restart nginx;sudo systemctl reload nginx'
+  tags: ['install']
+

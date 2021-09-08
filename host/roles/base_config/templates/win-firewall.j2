@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+### ATTENTIONS:
+# put this script to /etc/rc.d/init.d
+# chmod +x /etc/rc.d/init.d/win-firewall
+# bash /etc/rc.d/init.d/win-firewall
+# 
+# firewall policy
+fwcmd=/usr/bin/firewall-cmd
+#allow_ports='
+#18087
+#18088
+#'
+allow_ips='
+{{ host_all|join("\n") }}
+'
+
+# start with os
+echo '[Unit]
+Description=Run script at startup after network becomes reachable
+After=network.target
+
+[Service]
+ExecStart=/etc/rc.d/init.d/win-firewall
+
+[Install]
+WantedBy=default.target' | sudo tee /lib/systemd/system/startup-script.service 2 > /dev/null
+sudo systemctl daemon-reload
+sudo systemctl enable startup-script.service > /dev/null 2>&1
+
+# clean all role
+sudo iptables -F
+sudo iptables -X
+sudo iptables -Z
+# restart firewall
+sudo systemctl restart firewalld
+echo -e "remove service ssh ... \c"
+sudo $fwcmd --remove-service='ssh'
+
+# allow tcp port
+Allow_Ports () {
+for port in $(echo $allow_ports)
+do
+    echo -e "add allow port $port ... \c"
+    sudo $fwcmd --add-port=${port}/tcp
+done
+}
+
+# allow ip address
+Allow_IPS () {
+for ip in $(echo $allow_ips)
+do
+    echo -e "add allow IP $ip ... \c"
+    sudo $fwcmd --add-rich-rule="rule family="ipv4" source address="$ip" accept"
+    # 上面规则中包含了 ssh 端口
+    #echo -e "add allow ssh for $ip ... \c"
+    #sudo $fwcmd --add-rich-rule="rule family="ipv4" source address="$ip" service name="ssh" accept"
+done
+}
+
+#Allow_Ports
+Allow_IPS
+sudo $fwcmd --list-all

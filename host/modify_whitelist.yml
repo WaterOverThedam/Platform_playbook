@@ -1,0 +1,8 @@
+---
+- name: 修改防火墙白名单
+  hosts: all
+  vars:
+    ansible_ssh_user: root
+  gather_facts: False
+  roles:
+    - {role: modify_whitelist}

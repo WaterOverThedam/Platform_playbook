@@ -1,0 +1,50 @@
+---
+- name: remove service
+  hosts: '*mid*:*app*'
+  gather_facts: False
+  become: yes
+  tasks:
+    - name: remove xxl-job
+      yum: name=xxl-job state=removed
+      when: inventory_hostname|regex_search('[?!dmts_]mid.*1$')
+      tags: ['xxl-job']
+    - name: remove mariadb
+      yum: name=mariadb state=removed
+      when: inventory_hostname|regex_search('[?!dmts_]mid.*1$')
+      tags: ['mariadb']
+
+    - name: remove consul
+      yum: name=consul state=removed
+      when: inventory_hostname|regex_search('(?!dmts_)mid')
+      tags: ['consul']
+    - name: remove rabbitmq
+      yum: name=rabbitmq state=removed
+      when: inventory_hostname|regex_search('(?!dmts_)mid')
+      tags: ['rabbitmq']
+    - name: remove redis
+      yum: name=redis state=removed
+      when: inventory_hostname|regex_search('(?!dmts_)mid')
+      tags: ['redis']
+    - name: remove elsticsearch
+      yum: name=elasticsearch state=removed
+      when: inventory_hostname|regex_search('(?!dmts_)mid')
+      tags: ['elasticsearch','es']
+
+    - name: remove neo4j
+      yum: name=neo4j state=removed
+      when: inventory_hostname|regex_search('(?!dmts_)mid')
+      tags: ['neo4j']
+
+    - name: remove minio
+      yum: name=minio state=removed
+      when: inventory_hostname|regex_search('(?!dmts_)mid')
+      tags: ['minio']
+
+    - name: remove nginx
+      yum: name=nginx state=removed
+      when: inventory_hostname|regex_search('web')
+      tags: ['nginx']
+    - name: remove keepalived
+      yum: name=keepalived state=removed
+      when: inventory_hostname|regex_search('web')
+      tags: ['keepalived']

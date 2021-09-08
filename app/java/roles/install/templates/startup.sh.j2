@@ -1,0 +1,41 @@
+#!/bin/bash
+
+{% if app_info.deploy_type == 'wdshisdepl' %}
+## HIS部署模式
+cd {{ deploy_path }}
+nohup java -jar {{ app_info.mem_opts }} {{ deploy_path }}/winning-wds-fhir-his.jar "$@" &
+
+{% elif app_info.deploy_type == 'tmtsdepl'  %}
+
+#!/bin/bash
+
+cd {{ deploy_path }}
+
+nohup java {{ app_info.mem_opts }} \
+ -Duser.timezone=GMT+08 -Djava.awt.headless=true\
+ -Dorg.eclipse.jetty.server.Request.maxFormContentSize=104857600\
+ -Djavax.xml.bind.context.factory=com.sun.xml.internal.bind.v2.ContextFactory\
+ -Djava.rmi.server.hostname=127.0.0.1\
+ -Dcom.sun.management.jmxremote.authenticate=false\
+ -Dcom.sun.management.jmxremote.ssl=false\
+ -Ddatabase.show.sql=false\
+ -classpath {{ deploy_path }}/launcher/launch-0.0.1-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime "$@" &
+
+{% else %}
+## 其他部署模式
+
+export WINAPPID="{{ app_info.win_appid }}"
+export WINPORT="{{ app_info.win_port }}"
+{% if app_info.module_type == 'java_integration_module' %}
+export JARFILE="{{ deploy_path }}/boot/base/launcher/launcher-1.5-SNAPSHOT.jar"
+{% else %}
+export JARFILE="{{ deploy_path }}/launcher-1.3-SNAPSHOT.jar"
+{% endif%}
+export CONSUL_TAG="-Dspring.cloud.consul.discovery.tags={{ app_info.win_consul_tag }}"
+export INSTANCE_CODE="-Dxxl.job.executor.port={{ app_info.xxl_job_port }}"
+export SERVER_PORT="{{ app_info.win_port }}"
+
+cd {{ deploy_path }}
+source ./run.sh
+
+{% endif%}

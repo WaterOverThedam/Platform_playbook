@@ -1,0 +1,9 @@
+---
+soft_name: "keepalived"
+soft_host: "{{ansible_ssh_host}}"
+soft_port: "80"
+interface: "{{ netif }}"
+rpm_pkg: "keepalived-2.0.18-win6.0.x86_64"
+tmp_conf: "/etc/keepalived/tmp"
+first: "{{groups['web_first_two'][0]}}"
+# nginx 虚拟IP.

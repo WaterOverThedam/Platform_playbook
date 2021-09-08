@@ -1,0 +1,14 @@
+#!/usr/bin/expect
+set timeout 10
+set password [lindex $argv 0]
+set filename [lindex $argv 1]
+spawn ansible-vault encrypt $filename
+
+expect {
+    "New Vault password:"
+    {
+        send "$password\n"
+        expect "Confirm New Vault password:" {send "$password\n" }
+    }
+}
+expect eof

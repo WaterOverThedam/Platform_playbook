@@ -1,0 +1,6 @@
+location /{{ web_relative_path }}/ {
+   add_header 'Access-Control-Allow-Origin' '*';
+   root   /winning/app/html/;
+   index  index.html index.htm;
+   try_files $uri $uri/ /{{ web_relative_path }}/index.html;
+}

@@ -1,0 +1,7 @@
+- name: restart backend app
+  hosts: '*app*:!dmts_app*'
+  gather_facts: False
+  vars_files:
+    - config_vars.yml
+  roles:
+    - {role: app_restart ,tags: app_restart}

@@ -1,0 +1,6 @@
+---
+- name: health check
+  hosts: "mids_first_three"
+  gather_facts: False
+  roles:
+    - {role: health_check, tags: ['health','health_check','check']}

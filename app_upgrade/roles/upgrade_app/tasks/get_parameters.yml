@@ -1,0 +1,40 @@
+---
+- debug: "var=mode_change"
+
+- name: "check backend_resources parameters"
+  fail:
+    msg: "No backend_resources parameters or the array is empty!"
+  when: "'backend_resources' not in params or params.backend_resources|length == 0"
+
+- name: "check W_FLOW parameters"
+  fail:
+    msg: "No W_FLOW parameter or the variable is empty!"
+  when: "mode_change==True and ('W_FLOW' not in params or params['W_FLOW']|default('')=='')"
+
+- name: "check W_SEQ parameters"
+  fail:
+    msg: "No W_SEQ parameter or the variable is empty!"
+  when: "mode_change==True and ('W_SEQ' not in params or params['W_SEQ']|default('')=='')"
+
+- name: "set backend_resources variables"
+  set_fact:
+    backend_resources: "{{params.backend_resources|list}}"
+
+- name: "set frontend_resources variables"
+  set_fact:
+    frontend_resources: "{{params.frontend_resources|list}}"
+
+- name: get front master
+  set_fact:
+    app_master: "{{groups[group_name|default('all',true)]|select('search','app.*1')|list}}"
+  tags: ['front']
+- name: get front master ip
+  set_fact:
+    app_master_ip: "{{hostvars[app_master[0]].ansible_ssh_host}}"
+  tags: ['front']
+
+- name: "set canary variables"
+  set_fact:
+    W_SEQ: "{{params.W_SEQ}}"
+    W_FLOW: "{{params.W_FLOW}}"
+  when: mode_change

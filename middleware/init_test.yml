@@ -1,0 +1,31 @@
+---
+- name: init new system
+  hosts: '*mid*:*app*'
+  gather_facts: False
+  tasks:
+    - ping:
+      tags: ['ping']
+    - setup: "filter=ansible*"
+    - find:
+        paths: "/tmp/pkg"
+        patterns: "*.rpm"
+      register: rpm_files
+    - shell: ls /tmp/pkg/*.rpm
+      register: res
+    - debug:
+        msg: "ansible_default_ipv4.interface {{ansible_default_ipv4.interface}}"
+    - debug:
+        msg: "{{item['path']}}"
+      with_items: "{{rpm_files.files}}"
+    - debug:
+        msg: "{{item}}"
+      with_items: "{{res.stdout_lines}}"
+    - debug:
+        msg: "{{groups.prod|length}}"
+      tags: ['host']
+    - shell: "for i in {1..{{groups.prod|length}}};do if [ $((($i%2))) -ne 0 ];then echo $i ;fi; done|awk 'END {print}' "
+      register: len
+      failed_when: "groups.prod|length == 0 "
+      tags: ['len']
+    - debug:
+        msg: "{{len}}"

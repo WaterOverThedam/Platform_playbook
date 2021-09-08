@@ -1,0 +1,30 @@
+{
+  "backend_resources": [
+    {
+     "app_name": "winning-bas-cis-outpatient-allinone",
+     "appid": "4001",
+     "job_name": "winning-bas-cis-outpatient-allinone-dev",
+     "downloadUrl": "svn://172.16.6.34/RC/base/winning-bas-allinone-cis-outpatient-202012231537",
+     "destPath": "/winning/app/winning-bas-allinone-cis-outpatient/1.0.1/40010",
+     "port": "40010",
+     "port_xxl_job": "40011",
+     "revision": "674",
+     "cloud_revision": "505"
+    },
+    {
+     "app_name": "winning-pmts-cooperation-basic",
+     "appid": "3210",
+     "job_name": "winning-pmts-cooperation-basic",
+     "downloadUrl": "svn://172.16.6.34/RC/base/winning-pmts-cooperation-basic-202012211904",
+     "destPath": "/winning/app/winning-pmts-cooperation-basic/1.0.1/32100",
+     "port": "32100",
+     "port_xxl_job": "32101",
+     "revision": "450",
+     "cloud_revision": "2"
+    }
+   ],
+   "W_FLOW": "canary",
+   "W_SEQ": "22",
+   "xxl_job_host": "172.16.6.34"
+}
+

@@ -1,0 +1,18 @@
+---
+- name: "{{state|replace('ed','')}} services"
+  hosts: '*web*'
+  gather_facts: False
+  become: yes
+  tasks:
+    - set_fact:
+        verb: "{{state|replace('ed','')}}"
+        web_targets: "{{groups[group_name]|select('match','web')|list}}"
+      tags: ['var']
+ 
+    - name: "{{verb}} nginx"
+      systemd: name=nginx state='{{state}}'
+      tags: ['nginx']
+    - name: "{{verb}} keepalived"
+      systemd: name=keepalived state='{{state}}'
+      when: "web_targets|length > 1"
+      tags: ['keepalived']

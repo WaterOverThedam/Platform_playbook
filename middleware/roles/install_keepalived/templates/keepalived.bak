@@ -1,0 +1,54 @@
+! Configuration File for keepalived
+
+global_defs {
+    notification_email {
+        zhojy@outlook.com
+    }
+    notification_email_from M1@keepalived.com
+    smtp_server 127.0.0.1
+    smtp_connect_timeout 30
+    router_id M1
+}
+
+vrrp_script check_port_{{ soft_port }} {
+    script "/usr/bin/nc -zv localhost {{ soft_port }}"
+    weight -60
+}
+
+{% if 'win_mid1' in group_names %}
+vrrp_instance VI_1 {
+    state MASTER
+    interface {{ interface }}
+    virtual_router_id 88
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 2019
+    }
+    virtual_ipaddress {
+        {{ vip }}
+    }
+    track_script {
+        check_port_{{ soft_port }}
+    }
+}
+{% else %}
+vrrp_instance VI_1 {
+    state BACKUP
+    interface {{ interface }}
+    virtual_router_id 88
+    priority 50
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 2019
+    }
+    virtual_ipaddress {
+        {{ vip }}
+    }
+    track_script {
+        check_port_{{ soft_port }}
+    }
+}
+{% endif %}

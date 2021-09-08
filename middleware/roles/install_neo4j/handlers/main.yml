@@ -1,0 +1,7 @@
+- name: restart {{ soft_name }} 
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+

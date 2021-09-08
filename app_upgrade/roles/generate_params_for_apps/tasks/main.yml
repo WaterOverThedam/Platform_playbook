@@ -1,0 +1,43 @@
+- name: set sql
+  set_fact:
+    get_svn_sql: "select value from  sys_param  where code =\\'svnUrl\\' limit 1;"
+- name: get h2 param
+  #与host下的脚本相同，直接调用
+  set_fact:
+    svn_url: "{{ lookup('pipe','sh {{role_path}}/../../../host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_svn_sql}}') }}"
+  failed_when: svn_url == ''
+- name: get svn_url
+  set_fact:
+   svn_url: "{{svn_url.split('/;')[0]}}"
+  failed_when: svn_url == ''
+
+- name: get reources params to files
+  shell: "{{role_path}}/files/create_csv_params.sh {{role_path}}/files {{svn_url}}/RC/base {{ansible_ssh_host}}"
+
+- name: read csv for backend 
+  read_csv:
+    path: "{{role_path}}/files/backend.csv"
+  register: backend_details
+- name: read csv for frontend 
+  read_csv:
+    path: "{{role_path}}/files/frontend.csv"
+  register: frontend_details
+
+- name: set app reources
+  set_fact:
+    params:
+      backend_resources: "{{backend_details.list}}"
+      frontend_resources: "{{frontend_details.list}}"
+
+- name: write vars to params.json file
+  copy: 
+    content: "{{ params | to_nice_json }}" 
+    dest: "{{playbook_dir}}/params.json"
+
+
+#- name: get svn No
+#  set_fact:
+#    svn_no: "{{ lookup('pipe','{{role_path}}/files/get_svnNo.sh {{svn_url}} winning-bas-allinone-cis-outpatient-202012231537') }}"
+#  failed_when: svn_no == ''
+  
+

@@ -1,0 +1,8 @@
+# Volume to be used for MinIO server.
+MINIO_VOLUMES="http://{{ win_mid1 }}{{ data_dir }}1 http://{{ win_mid1 }}{{ data_dir }}2 http://{{ win_mid2 }}{{ data_dir }}1 http://{{ win_mid2 }}{{ data_dir }}2 http://{{ win_mid3 }}{{ data_dir }}1 http://{{ win_mid3 }}{{ data_dir }}2"
+# Use if you want to run MinIO on a custom port.
+MINIO_OPTS="--address :9000"
+# Access Key of the server.
+MINIO_ACCESS_KEY=www.winning.com.cn
+# Secret key of the server.
+MINIO_SECRET_KEY=www.winning.com.cn

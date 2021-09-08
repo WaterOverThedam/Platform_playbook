@@ -1,0 +1,42 @@
+---
+
+
+- name: get host id
+  local_action: shell cat /dev/urandom | head -n 10 | md5sum | head -c 32
+  register: id_host
+  tags: ['install_agent']
+
+- name: get local ip
+  local_action: shell ip a | grep 'state UP' -A3 |grep 'inet'|head -1 | awk '{print $2}' |cut -f1 -d '/' |sed -nr '/[0-9]*\.[0-9]*/p'
+  register: local_ip
+  tags: ['install_agent']
+
+- name: set h2 sql
+  set_fact:
+    host_all_sql: "SELECT distinct IP_ADDR host FROM SERVERMGR_HOSTCOMPUTER"
+  tags: ['install_agent']
+
+- name: get h2 param
+  set_fact:
+    hosts: "{{ lookup('pipe','sh {{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{host_all_sql}}') }}"
+    yum_addr: "{{ lookup('pipe','sh {{role_path}}/files/getH2_value.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} yumaddress') }}"
+    ntp_server: "{{ lookup('pipe','sh {{role_path}}/files/getH2_value.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} ntpserver') }}"
+  tags: ['install_agent']
+- debug: var=yum_addr
+- debug: var=ntp_server
+
+- name: set host_all list
+  set_fact:
+    host_all: "{{ hosts.split('\n') }}"
+- name: append ngx_vip and self to host_all list
+  set_fact:
+    host_all: "{{host_all + [ngx_vip,'127.0.0.1']}}"
+  when: ngx_vip is defined
+- name: append extra_ips to host_all list
+  set_fact:
+    host_all: "{{host_all + extra_ips.split(',')}}"
+  when: extra_ips is defined
+
+- name: show white list
+  debug: var=host_all|join('\n')
+#- debug: msg="{{ inventory_dir}} ,{{ inventory_dir | dirname }} ,{{ inventory_dir.split("/")[0:-1]|join("/") }} "

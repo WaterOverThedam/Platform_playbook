@@ -1,0 +1,23 @@
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】stop app"
+  shell: "./stop.sh"
+  register: result
+  args:
+    chdir: "{{item.1.destPath}}"
+  tags: ['restart_app','restart','stop','stop_app','{{item.1.appid}}','{{item.0|int+1}}']
+- debug: var=result.stdout_lines
+  tags: ['restart_app','restart','stop','stop_app','{{item.1.appid}}','{{item.0|int+1}}']
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】wait for port {{item.1.port}} to close"
+  wait_for: "port={{item.1.port}} timeout=15 state=stopped"
+  tags: ['restart_app','restart','check_port','{{item.1.appid}}','{{item.0|int+1}}']
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】start app"
+  shell: "./startup.sh"
+  async: 1
+  poll: 0
+  args:
+    chdir: "{{item.1.destPath}}"
+  tags: ['restart_app','restart','start','start_app','{{item.1.appid}}','{{item.0|int+1}}']
+
+
+

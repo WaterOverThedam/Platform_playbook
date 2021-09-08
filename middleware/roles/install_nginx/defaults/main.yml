@@ -1,0 +1,3 @@
+---
+soft_name: "nginx"
+tmp_conf: "/tmp/http"

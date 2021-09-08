@@ -1,0 +1,11 @@
+---
+soft_name: "consul"
+soft_host: "{{hostvars[inventory_hostname].ansible_ssh_host}}"
+mid1: "{{hostvars.mid1.ansible_ssh_host}}"
+soft_port: 8500
+soft_pass: "empty"
+data_dir: "/winning/winmid/consul/data"
+conf_dir: "/winning/winmid/consul/config"
+env_file: "/etc/sysconfig/consul"
+
+HOST_COUNT: "{{groups.mids_first_three|length}}"

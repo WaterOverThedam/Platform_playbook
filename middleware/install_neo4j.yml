@@ -1,0 +1,7 @@
+---
+- name: INSTALL neo4j 
+  hosts: "mids_first_three"
+  gather_facts: False
+  become: yes
+  roles:
+    - {role: install_neo4j, tags: ['neo4j']}

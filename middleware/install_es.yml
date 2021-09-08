@@ -1,0 +1,7 @@
+---
+- name: INSTALL elasticsearch
+  hosts: "mids_first_three"
+  gather_facts: True
+  become: yes
+  roles:
+    - {role: install_es, tags: ['es','elasticsearch']}

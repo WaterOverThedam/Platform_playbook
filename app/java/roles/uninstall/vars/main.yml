@@ -1,0 +1,3 @@
+---
+# The application deploy path
+deploy_path: "/winning/app/{{ app_info.repository_name }}/{{ app_info.win_app_version }}/{{ app_info.win_port }}"

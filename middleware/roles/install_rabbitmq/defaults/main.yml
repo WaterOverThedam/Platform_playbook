@@ -1,0 +1,8 @@
+---
+soft_name: "rabbitmq"
+soft_port: 15672
+soft_user: "admin"
+soft_pass: "win.2019"
+base_dir: "/winning/winmid/{{ soft_name }}"
+conf_dir: "{{ base_dir }}/conf"
+logs_dir: "{{ base_dir }}/logs"

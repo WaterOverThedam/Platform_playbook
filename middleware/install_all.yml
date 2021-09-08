@@ -1,0 +1,12 @@
+---
+- import_playbook: init_target_hosts.yml
+- import_playbook: install_consul.yml
+- import_playbook: install_neo4j.yml
+- import_playbook: install_minio.yml
+- import_playbook: install_redis.yml
+- import_playbook: install_nginx_keeplived.yml
+- import_playbook: install_rabbitmq.yml
+- import_playbook: install_mariadb_xxl_job.yml
+- import_playbook: install_es.yml
+- import_playbook: health_check.yml
+

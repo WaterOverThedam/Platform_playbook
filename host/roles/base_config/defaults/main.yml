@@ -1,0 +1,8 @@
+---
+netmask: 24
+# winning winsupport用户密码
+ansible_winning_password: 'Win.2020'
+# winning winsupport shell
+user_shell: '/bin/bash'
+changing: false
+  

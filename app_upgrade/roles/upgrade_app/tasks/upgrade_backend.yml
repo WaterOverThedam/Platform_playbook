@@ -1,0 +1,60 @@
+---
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】set job_name variable if exists job_name attribute"
+  set_fact:
+    job_name: "{{item.1.job_name}}"
+  when: item.1.job_name|default('')!=''
+  tags: ['back','xxl_sql','{{item.1.appid}}','{{item.0|int+1}}']
+- name: "{{item.0|int+1}}-{{item.1.app_name}}】set job_name variable if not exists"
+  set_fact:
+    job_name: "{{item.1.app_name}}-dev"
+  when: item.1.job_name|default('')==''
+  tags: ['back','xxl_sql','{{item.1.appid}}','{{item.0|int+1}}']
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】copy xxl-job update sql"
+  template: "src=update_xxl_job.sql dest='/tmp/{{item.1.app_name}}.sql' force=yes"
+  delegate_to: '{{params.xxl_job_host}}'
+  when: "mode_change"
+  tags: ['back','xxl_sql','{{item.1.appid}}','{{item.0|int+1}}']
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】execute xxl-job update sql ->修改xxl-job任务注册信息"
+  shell: '/usr/bin/mysql </tmp/{{item.1.app_name}}.sql'
+  delegate_to: '{{params.xxl_job_host}}'
+  when: "mode_change"
+  tags: ['back','xxl_sql','{{item.1.appid}}','{{item.0|int+1}}']
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】config startup.sh"
+  lineinfile:
+    dest: "{{item.1.destPath}}/startup.sh"
+    regexp: "export CONSUL_TAG"
+    line: 'export CONSUL_TAG="-Dspring.cloud.consul.discovery.tags=W-FLOW={{W_FLOW}},W-SEQ={{W_SEQ}}"'
+  when: "mode_change"
+  tags: ['back','config','{{item.1.appid}}','{{item.0|int+1}}']
+
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】get svn local revision No if exists revision attribute"
+  set_fact:
+    revision: "{{item.1.revision}}" 
+  when: "item.1.revision|default('',true)!=''"
+  tags: ['back','config','{{item.1.appid}}','{{item.0|int+1}}']
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】get svn local revision No if not exists"
+  set_fact:
+    revision: "{{ lookup('pipe','{{role_path}}/files/get_localNo_by_cloudNo.sh {{item.1.downloadUrl}} {{item.1.cloud_revision}}')|default(0,true) }}"
+  when: "item.1.revision|default('',true)=='' and item.1.cloud_revision > 0"
+  tags: ['back','config','{{item.1.appid}}','{{item.0|int+1}}']
+
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】 set revision string pair"
+  set_fact:
+    revision_pair: "{{revision}}/{{item.1.cloud_revision}}"
+    svn_info_get_backend: "select PATCHVERSION from MISMGR_NODEMANAGE WHERE NODEIP=\\'{{ansible_ssh_host}}\\' and APPID=\\'{{item.1.appid}}\\'"
+  tags: ['back','config','{{item.1.app_name}}']
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】get deployed svn revision"
+  set_fact:
+    deployed_ver: "{{ lookup('pipe','{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{svn_info_get_backend}}') }}"
+  tags: ['back','config','{{item.1.app_name}}']
+
+
+- {include: backend_clean_and_checkout.yml, tags: ['back','exec'], when: "revision|int > 0 and (force == 'yes' or revision_pair != deployed_ver)"}
+- {include: upgrade_backend_restart_app.yml, tags: ['back','restart_app','restart'], when: "revision|int > 0 and (force == 'yes' or revision_pair != deployed_ver)" }

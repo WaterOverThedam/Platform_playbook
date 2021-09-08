@@ -1,0 +1,20 @@
+- name: stop apps
+  shell: "echo -n {{item|int+1}};./stop.sh"
+  register: "res"
+  args:
+    chdir: "{{resources[item].destPath}}"
+  loop: "{{ range(0, resources|length) | list }}"
+  tags: ['stop','stop_app']
+
+- debug: msg="{{res.results[item].stdout}}"
+  loop: "{{ range(0, res.results|length) | list }}"
+  tags: ['stop','stop_app']
+
+- name: start apps
+  shell: "echo -n {{item|int+1}};./startup.sh"
+  async: 1
+  poll: 0
+  args:
+    chdir: "{{resources[item].destPath}}"
+  with_indexed_items: "{{resources}}"
+  tags: ['start','start_app']

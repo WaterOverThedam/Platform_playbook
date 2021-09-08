@@ -1,0 +1,16 @@
+---
+- name: "delete {{item}}"
+  lineinfile:
+    dest:  "{{firewall_config}}"
+    state: absent
+    regexp: '^{{item}}$'
+  tags: ['remove']
+  notify: reset firewall
+
+- name: "add {{item}}"
+  lineinfile:
+    dest:  "{{firewall_config}}"
+    line: '{{item}}'
+    insertafter: "allow_ips='"
+  tags: ['add']
+  notify: reset firewall

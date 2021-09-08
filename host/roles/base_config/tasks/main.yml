@@ -1,0 +1,103 @@
+---
+##密码有默认值，但优先使用不同主机的随机密码来设置
+- name: create user and set password
+  user:
+    name: "{{ item.user }}"
+    password: "{{ ansible_winning_password | password_hash('sha512') }}"
+    shell: "{{ user_shell }}"
+    home: "{{ item.home }}"
+    state: present
+  loop:
+    - { user: winning, home: '/home/winning' }
+    - { user: winsupport, home: '/home/winsupport' }
+  tags: ['confbash','create_user']
+
+- name: change user passwd
+  user: name=winning password={{ ansible_winning_password | password_hash('sha512') }}  update_password=always
+  when: "ansible_winning_password|default('') !='' and changing"
+  tags: ['change_pass']
+  
+- name: create winning .ssh dir
+  file:
+    path: "{{ item.name }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    state: directory
+  with_items:
+    - { name: '/home/winning/.ssh', owner: 'winning', group: 'winning' }
+    - { name: '/home/winsupport/.ssh', owner: 'winsupport', group: 'winsupport' }
+    - { name: '/etc/yum.repos.d/bak', owner: 'root', group: 'root' }
+  tags: confbash
+
+- name: create ssh authorized_key for winning user
+  authorized_key: user=winning key='{{lookup("file", "/root/.ssh/id_rsa.pub")}}'
+  tags: ['winning_key']
+
+- name: create ssh authorized_key for ops host self
+  authorized_key: user=root key='{{lookup("file", "/root/.ssh/id_rsa.pub")}}'
+  run_once: True
+  delegate_to: localhost
+  tags: ['winning_key']
+
+- name: copy ops key for workers to log in ops
+  copy: 'src=/root/.ssh/id_rsa dest=/root/.ssh mode=0600'
+  tags: ['winning_key']
+
+- name: backup oldrepo
+  shell: repo=$(find /etc/yum.repos.d/ -maxdepth 1 -name '*.repo') ; if [ ! -z "$repo" ]; then mv $repo /etc/yum.repos.d/bak/ ; fi
+
+- name: set config file
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    owner: '{{ item.own }}'
+  loop:
+    - { src: 'bashrc_root.j2',          dest: '~/.bashrc',                      own: root }
+    - { src: 'bashrc_winning.j2',       dest: '/home/winning/.bashrc',          own: winning }
+    - { src: 'bashrc_winsupt.j2',       dest: '/home/winsupport/.bashrc',       own: winsupport }
+    - { src: 'sudoers.j2',              dest: '/etc/sudoers',                   own: root }
+    - { src: 'winning.repo.j2',         dest: '/etc/yum.repos.d/winning.repo',  own: root }
+  tags: confbash
+
+- name: stop firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    force: True
+    enabled: no
+  tags: ["firewall","firewall_stop"]
+  when: "not inventory_hostname|regex_search('mid\\d$') or inventory_hostname|regex_search('dmts')"
+
+#- debug: msg="{{'mid' in group_names}},{{inventory_hostname is not match 'mid*'}}"
+#  tags: ['debug']
+
+- name: start firewalld
+  systemd:
+    name: firewalld
+    state: started
+    enabled: yes
+  when: "inventory_hostname|regex_search('mid\\d$') and not inventory_hostname|regex_search('dmts')"
+  tags: ["firewall"]
+
+- name: config firewall rules
+  template: src="win-firewall.j2" dest="/etc/init.d/win-firewall" mode=0755
+  tags: ["firewall"]
+  when: "inventory_hostname|regex_search('mid\\d$') and not inventory_hostname|regex_search('dmts')"
+- name: execute firewall rules
+  shell: "/etc/init.d/win-firewall"
+  when: "inventory_hostname|regex_search('mid\\d$') and not inventory_hostname|regex_search('dmts')"
+  tags: ["firewall"]
+
+#- name: config firewalld
+#  systemd:
+#    name: firewalld
+#    state: started
+#    enabled: yes
+
+#- name: add-port
+#  firewalld:
+#    permanent: yes
+#    state: enabled
+#    immediate: yes
+#    port: 80/tcp
+

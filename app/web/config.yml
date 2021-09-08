@@ -1,0 +1,9 @@
+---
+- name: 配置部署
+  hosts: all
+  gather_facts: False
+  vars_files:
+      - values.yml
+  roles:
+      - {role: config, tags: ['config']}
+

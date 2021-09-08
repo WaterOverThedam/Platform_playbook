@@ -1,0 +1,9 @@
+---
+soft_name: "elasticsearch"
+soft_host: "{{ ansible_ssh_host }}"
+soft_port: 19200
+soft_pass: "empty"
+data_dir: "/winning/winmid/{{ soft_name }}/data"
+logs_dir: "/winning/winmid/{{ soft_name }}/logs"
+conf_dir: "/winning/winmid/{{ soft_name }}/config"
+base_dir: "/winning/winmid/{{ soft_name }}"

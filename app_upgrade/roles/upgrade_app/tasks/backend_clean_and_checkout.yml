@@ -1,0 +1,19 @@
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】clean working directory"
+  file: "path={{item.1.destPath}}/boot state=absent"
+  tags: ['exec','clean','{{item.1.appid}}','{{item.0|int+1}}']
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】checkout the svn code of specified revision {{revision}}"
+  subversion: "repo={{item.1.downloadUrl}}/boot dest={{item.1.destPath}}/boot username={{svn.user}} password={{svn.pass}} revision={{revision}} force=yes"
+  tags: ['exec','pull','checkout','{{item.1.appid}}','{{item.0|int+1}}']
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】make sure app's patch directory created"
+  file: "path={{item.1.destPath}}/boot/patch state=directory"
+  tags: ['exec','patch','patch_dir','{{item.1.appid}}','{{item.0|int+1}}']
+
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】set svn revision update sql"
+  set_fact:
+    svn_info_update_backend: "UPDATE PUBLIC.MISMGR_NODEMANAGE SET PATCHVERSION=\\'{{revision}}/{{item.1.cloud_revision}}\\' WHERE NODEIP=\\'{{ansible_ssh_host}}\\' and APPID=\\'{{item.1.appid}}\\'"
+  tags: ['exec','svn','svn_update_sql','{{item.1.appid}}','{{item.0|int+1}}']
+- name: "【{{item.0|int+1}}-{{item.1.app_name}}】update h2 for svn revision {{revision}}/{{item.1.cloud_revision}}"
+  shell: "{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{svn_info_update_backend}}"
+  delegate_to: localhost
+  tags: ['exec','svn_info_update','{{item.0|int+1}}','{{item.1.appid}}']

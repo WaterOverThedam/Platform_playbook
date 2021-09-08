@@ -1,0 +1,9 @@
+---
+- name: init new system
+  hosts: all
+  gather_facts: False
+  vars:
+   type: "check"
+  tasks:
+    - copy: src="{{playbook_dir}}/enable_mids.sh" dest=/tmp/ mode=0755
+    - shell: "/tmp/enable_mid.sh {{type}}"

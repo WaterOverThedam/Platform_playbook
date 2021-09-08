@@ -1,0 +1,26 @@
+
+- name: "【{{item.app_name}}】clear frontend apps' working directory"
+  file: "path={{item.destPath}} state=absent"
+  tags: ['exec','clean','{{item.app_name}}']
+
+- name: "【{{item.app_name}}】checkout svn codes for frontend given revision {{revision}}"
+  shell: "svn checkout  {{item.downloadUrl}} {{item.destPath}} -r {{revision}} --username {{svn.user}} --password {{svn.pass}} --force --non-interactive warn=False"
+  notify: 
+    - restart nginx
+  tags: ['exec','pull','checkout','{{item.app_name}}']
+#用自带模块会报字付转化错误，放弃
+#- name: "get svn codes for frontend" 
+#  subversion: "repo={{item.downloadUrl}} dest={{item.destPath}} username={{svn.user}} password={{svn.pass}} revision={{revision}} force=yes"
+#  loop: "{{frontend_resources}}"
+#  notify: restart nginx
+#  tags: ['pull','checkout']
+
+- name: "【{{item.app_name}}】copy default.d config"
+  shell: "/bin/cp {{item.destPath}}/default.d/*  /winning/winmid/nginx/conf/default.d/"
+  notify: restart nginx
+  tags: ['exec','nginx_config','{{item.app_name}}']
+
+- name: "【{{item.app_name}}】update h2 for svn revision"
+  shell: "{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{svn_update_primary if inventory_hostname=='app1' else svn_update_backup}}"
+  delegate_to: localhost
+  tags: ['exec','svn_info_update']

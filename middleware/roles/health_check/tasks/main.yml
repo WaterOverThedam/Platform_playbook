@@ -1,0 +1,20 @@
+- name: 'run check scripts'
+  script: 'health_check.sh {{groups.mids_first_three|length}} {{ansible_ssh_host}} || /bin/true' 
+  when: inventory_hostname == groups.mids_first_three[0]
+  register: result
+  ignore_errors: true
+
+- debug: var=result.stdout_lines
+  when: inventory_hostname == groups.mids_first_three[0]
+
+- name: '【check neo4j】'
+  shell: 'sh /winning/winmid/neo4j/bin/cypher-shell -u neo4j -p win.2019 "match (n) return n;"|head -6'
+  register: result
+- debug: var=result.stdout_lines
+
+- name: '【check xxl-job 18080 port】'
+  wait_for:
+    port: 18080
+    delay: 10  
+    timeout: 20
+  when: inventory_hostname == groups.mids_first_three[0]

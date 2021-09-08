@@ -1,0 +1,10 @@
+---
+soft_name: "redis"
+soft_host: "{{ ansible_ssh_host }}"
+soft_port: 6379
+soft_pass: winning.2019
+base_dir: "/winning/winmid/{{ soft_name }}"
+conf_dir: "{{ base_dir }}/conf"
+logs_dir: "{{ base_dir }}/logs"
+ctl_scpt: "{{ base_dir }}/{{ soft_name }}_ctl.sh"
+cluster_nodes: "{{mid_target_ips_tmp.results|map(attribute='ansible_facts.ip')|join(' ')}}"

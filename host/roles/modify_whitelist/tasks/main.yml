@@ -1,0 +1,11 @@
+---
+
+- name: test firewall file exists
+  stat: "path={{firewall_config}}"
+  register: res
+
+- name: parse white_ist
+  set_fact:
+    whitelist: "{{white_list.split(',')}}"
+
+- {include_tasks: modify.yml, loop: "{{whitelist}}", tags: modify, when: "res.stat.exists and whitelist|length>0"}

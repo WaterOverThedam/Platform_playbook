@@ -1,0 +1,45 @@
+---
+- name: install {{ soft_name }}
+  yum:
+    update_cache: yes
+    name: '{{ soft_name }}'
+    enablerepo: winning
+    state: present
+
+- name: get erlang.cookie from node1
+  fetch: src=/root/.erlang.cookie dest={{role_path}}/files/ flat=yes
+  when: inventory_hostname == groups.mids_first_three[0]
+
+- name: send erlang.cookie for cluster
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - { src: '.erlang.cookie', dest: '/root/', owner: 'root', group: 'root', mode: '400' }
+    - { src: '.erlang.cookie', dest: '/home/winning/', owner: 'winning', group: 'winning', mode: '400' }
+  when: inventory_hostname != groups.mids_first_three[0]
+
+
+- name: restart {{ soft_name }}
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+
+- name: create {{ soft_name }} cluster
+  shell: "rabbitmqctl stop_app ; rabbitmqctl join_cluster rabbit@{{mid_targets[0]}} ; rabbitmqctl start_app"
+  when: inventory_hostname != groups.mids_first_three[0]
+
+#yum已经设置过,不再重复
+#- name: set {{ soft_name }} cluster policy
+#  shell: rabbitmqctl set_policy ha-ttl ".*" '{"ha-mode":"all","ha-sync-mode":"automatic","message-ttl":3600000} ' --apply-to queues
+#  when: inventory_hostname == groups.mids_first_three[0]
+
+- name: create admin user
+  shell: "sh {{base_dir}}/create_admin_user.sh"
+  when: inventory_hostname == groups.mids_first_three[0]
+

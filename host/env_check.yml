@@ -1,0 +1,42 @@
+---
+##runlevel检查
+- name: runlevel check
+  register: res
+  command: runlevel
+  delegate_to: "{{item}}"
+  with_items:
+    - "{{inventory_hostname}}"
+  #with_items: "{{groups.all}}"
+
+- set_fact:
+    errors: "{{res|json_query(my_query)}}"
+  vars:
+    my_query: "results[].{host: item, value: stdout}"
+
+- set_fact:
+    err_msgs: "{{err_msgs + [ item.host + '主机不是最小化安装，不符合要求！！' ]}}"
+  when: item.value !='N 3'
+  with_items: "{{errors}}"
+
+##Centos版本检查
+- name: Centos version check
+  register: res
+  command: cat /etc/redhat-release
+
+- set_fact:
+    err_msgs: "{{err_msgs + [ item.host + 'Centos版本不是7.6.1810，不符合要求！！' ]}}"
+  when: "not res.stdout|regex_search('CentOS Linux release 7.6.1810')"
+  with_items: "{{errors}}"
+
+
+##/winning挂载检查
+- name: /winning mounting check
+  register: res
+  shell: "df -h|awk '{print $NF}'|grep /winning"
+
+- set_fact:
+    err_msgs: "{{err_msgs + [ item.host + '没有挂载/winning分区，不能部署！！' ]}}"
+  when: "not res.stdout|regex_search('/winning')"
+  with_items: "{{errors}}"
+
+

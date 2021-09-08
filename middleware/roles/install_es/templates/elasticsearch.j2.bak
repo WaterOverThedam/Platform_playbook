@@ -1,0 +1,15 @@
+cluster.name: winning_{{ soft_name }}
+node.name: {{ soft_host }}
+path.data: {{ data_dir }}
+path.logs: {{ logs_dir }}
+network.host: 0.0.0.0
+http.port: {{ soft_port }}
+transport.tcp.port: 19300
+discovery.seed_hosts: ['{{ node1　}}:19300', '{{ node2 }}:19300', '{{ node3 }}:19300']
+cluster.initial_master_nodes: ['{{ node1　}}', '{{ node2 }}', '{{ node3 }}']
+discovery.zen.minimum_master_nodes: 2
+
+# 允许跨域请求
+http.cors.enabled: true   
+http.cors.allow-origin: '*'
+http.cors.allow-credentials: true

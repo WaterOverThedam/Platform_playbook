@@ -1,0 +1,6 @@
+- name: "deployed reversion checking ...."
+  register: result
+  script: "check_updated_reversion.sh {{frontend_resources|map(attribute='destPath')|join(' ')}}"
+  tags: ['check']
+- debug: var=result.stdout_lines
+  tags: ['check']

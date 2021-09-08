@@ -1,0 +1,58 @@
+---
+
+- name: set h2 sql
+  set_fact:
+    get_match_str_sql: "select datasource_json from DBMGR_DATASOURCES where datasource_json like \\'%{{match_str}}%\\'"
+    get_replacements_sql: "select datasource_json from DBMGR_DATASOURCES where datasource_json like \\'%{{replacements}}%\\'"
+    get_match_id_sql: "select id from DBMGR_DATASOURCES where datasource_json like \\'%{{match_str}}%\\'"
+    get_replacements_id_sql: "select id from DBMGR_DATASOURCES where datasource_json like \\'%{{replacements}}%\\'"
+  tags: ['multi_exec']
+
+- name: get h2 json value of datasource
+  set_fact:
+    match_res: "{{lookup('pipe','{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_match_str_sql}}')|from_json}}"
+    rep_res: "{{lookup('pipe','{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_replacements_sql}}')|from_json}}"
+  tags: ['multi_exec']
+
+- name: datasource url replace
+  set_fact:
+    old_url: "{{match_res.databaseType}}://{{match_res.ip}}:{{match_res.portNumber}};databaseName={{match_res.databaseName}}"
+    new_url: "{{rep_res.databaseType}}://{{rep_res.ip}}:{{rep_res.portNumber}};databaseName={{rep_res.databaseName}}"
+  tags: ['multi_exec']
+- {include: file_and_h2_replace.yml, match_str: "{{old_url}}", replacements: "{{new_url}}", tags: ['multi_user']}
+
+- {include: file_and_h2_replace.yml, name: "his pass adjust", match_str: "sql2k!@", replacements: "Wy666513", when: "new_url|regex_search('172.16.6.31.*THIS4')", tags: ['multi_user']}
+- {include: file_and_h2_replace.yml, name: "his pass adjust", match_str: "Wy666513", replacements: "sql2k!@", when: "new_url|regex_search('172.17.0.156.*THIS4')", tags: ['multi_user'] }
+- {include: file_and_h2_replace.yml, name: "WIN60 pass adjust", match_str: "Kingstar123", replacements: "123", when: "new_url|regex_search('WIN60')", tags: ['multi_user'] }
+#- name: replace his password for 156
+#  replace:
+#    path: "{{config_file}}"
+#    regexp: 'Wy666513'
+#    replace: 'sql2k!@'
+#  loop: "{{config_files}}"
+#  loop_control:
+#     loop_var: config_file
+#  when: "replacements|regex_search('THIS4') and replacements|regex_search('172.17.0.156')"
+#  tags: ['replace']
+
+- name: "datasource_name replace"
+  include: file_and_h2_replace.yml
+  match_str: "{{match_res.databaseName}}"
+  replacements: "{{rep_res.databaseName}}"
+  sql_update_column: 'MIDLIST'
+  tags: ['multi_exec']
+
+- name: db user replace
+  include: file_and_h2_replace.yml
+  match_str: "{{match_res.user}}"
+  replacements: "{{rep_res.user}}"
+  when: match_res.user != rep_res.user
+  tags: ['multi_user']
+
+- name: get h2 value of ID AND replace
+  set_fact:
+    match_str: "{{lookup('pipe','{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_match_id_sql}}')}}"
+    replacements: "{{lookup('pipe','{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_replacements_id_sql}}')}}"
+  failed_when: match_res|default('',true) == '' or rep_res|default('',true) == ''
+  tags: ['multi_exec']
+- {include: file_and_h2_replace.yml, sql_update_column: 'MIDLIST', tags: ['multi_user']}

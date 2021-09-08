@@ -1,0 +1,8 @@
+---
+- name: 启动后端应用
+  hosts: app
+  gather_facts: False
+  vars_files:
+      - values.yml
+  roles:
+      - {role: startup, tags: ['start', 'restart']}

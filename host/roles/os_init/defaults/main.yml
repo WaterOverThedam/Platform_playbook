@@ -1,0 +1,16 @@
+---
+# ntp时间服务器
+ntp_host: '{{ ops_addr }}'
+# 日志收集服务器
+rsyslog_host: '{{ ops_addr }}:5141'
+# yum源地址
+yum_base_url: "{{ yum_addr|default('http://'~ops_addr~'/yum',true) }}"
+# agent dir 
+agent_dir: '/winning/winmid/agent'
+app_stop: False
+# app dir
+product_path: /winning/winning_product
+hostname_override: "yes"
+app_path: 
+  app: /winning/app
+  log: /winning/log
