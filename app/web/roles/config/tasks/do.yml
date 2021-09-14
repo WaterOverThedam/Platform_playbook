@@ -21,6 +21,6 @@
   tags: ['config']
 
 - name: nginx服务重启
-  shell: 'sudo systemctl restart nginx;sudo systemctl reload nginx'
+  shell: 'sudo systemctl reload nginx'
   tags: ['install']
 

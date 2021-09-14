@@ -28,7 +28,7 @@ export JAVA_OPTS="{{ app_info.java_opts_def }} {{ app_info.win_java_opts }} "
 {% endif%}
 
 {% if app_info.svn_app_jar_path == 'boot' %}
-nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -DbaseHome={{ deploy_path }}/boot -jar {{ deploy_path }}/launcher-1.3-SNAPSHOT.jar "$@" &
+nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -DbaseHome={{ deploy_path }}/boot -jar {{ deploy_path }}/launcher-1.3-SNAPSHOT.jar "$@" >/dev/null 2>&1 &
 {% else %}
-nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -jar {{ deploy_path }}/main.jar "$@" &
+nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -jar {{ deploy_path }}/main.jar "$@" >/dev/null 2>&1 &
 {% endif%}

@@ -70,6 +70,10 @@
   tags: ['install']
 - debug: var=shell_out.stderr_lines
 
+- name: 清空default.d目录配置
+  shell: 'rm -rf /winning/winmid/nginx/conf/default.d/*.conf'
+  tags: ['install']
+
 - name: 前端nginx配置部署
   copy:
       content: "{{ item.confstr }}"
@@ -130,7 +134,7 @@
 #  service: name=nginx state=restarted
 #  tags: ['install']
 - name: nginx服务重启
-  shell: 'sudo systemctl restart nginx;sudo systemctl reload nginx'
+  shell: 'sudo systemctl restart nginx;'
   tags: ['install']
 
 
