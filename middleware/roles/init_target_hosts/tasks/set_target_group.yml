@@ -1,8 +1,8 @@
 ---
 
-##这里的search其实是regex_search；match匹配需要完整模式，search只需要满足版本，reject是取反
+#这里的search其实是regex_search；match匹配需要完整模式，search只需要满足版本，reject是取反
 - name: set app targets
-  set_fact: "app_targets={{groups[group_name]|select('search','(mid_)?app')|list}}"
+  set_fact: "app_targets={{groups[group_name]|select('search','(mid_)?app')|reject('search','dmts')|list}}"
 - name: debug app info
   debug: var=app_targets verbosity=0
 
@@ -16,13 +16,52 @@
 - name: debug web info
   debug: var=web_targets verbosity=0
 
+#保障mid主机是奇数个
 - name: get deployable cluster middleware host numbers
   shell: "for i in {1..{{mid_targets|length}}};do if [ $((($i%2))) -ne 0 ];then echo $i ;fi; done|awk 'END {print}' "
   delegate_to: localhost
   register: mid_num
   failed_when: "mid_targets|length == 0"
+- name: debug mid_num info 
+  debug: var=mid_num verbosity=0
 
-# - debug: 'msg="{{ 2 if target_num.stdout|int>2 else target_num.stdout|int}}xx"'
+- name: init mid_app targets
+  set_fact: "mid_targets={{mid_targets[0:mid_num.stdout|int]}}"
+- name: debug mid info again
+  debug: var=mid_targets verbosity=0
+
+#mid_app_targets,mid_redis_targets初始化
+- name: init mid_app targets
+  set_fact: 
+     mid_app_targets: "{{mid_targets + app_targets}}"
+     mid_redis_targets: "{{mid_targets}}"
+
+- name: initial values
+  debug: var=[expanded_redis,expanded_consul]
+
+#仅启用扩展中间件时,追加redis app主机到中间件
+- name: append mid_redis targets
+  set_fact:
+    mid_redis_targets: "{{mid_redis_targets + app_targets}}"
+  when: "expanded_redis|default(false,true) == true"
+
+- name: debug mid_app_targets info
+  debug: var=mid_app_targets verbosity=0
+- name: debug mid_redis_targets info
+  debug: var=mid_redis_targets verbosity=0
+##redis集群节点数，只能是6或3
+- name: get deployable cluster middleware host numbers
+  shell: "if [ {{mid_redis_targets|length}} -gt 5 ];then echo 6;else echo 3;fi"
+  delegate_to: localhost
+  register: redis_num
+- name: debug redis_num info 
+  debug: var=redis_num verbosity=0
+- name: adjusted for redis targets
+  set_fact: "redis_targets={{mid_redis_targets[0:redis_num.stdout|int]}}"
+- name: debug redis_targets info
+  debug: var=redis_targets verbosity=0
+
+#根据python列表生成ansible主机清单
 - name: set mid_targets group
   add_host: name={{ item }} group=mid_targets
   loop: "{{mid_targets}}"
@@ -30,6 +69,14 @@
 - name: set app_targets group
   add_host: name={{ item }} group=app_targets
   loop: "{{app_targets}}"
+
+- name: set mid_app_targets group
+  add_host: name={{ item }} group=mid_app_targets
+  loop: "{{mid_app_targets}}"
+
+- name: set redis_targets group
+  add_host: name={{ item }} group=redis_targets
+  loop: "{{redis_targets}}"
 
 - name: set web_targets group
   add_host: name={{ item }} group=web_targets
@@ -42,7 +89,6 @@
   add_host: name="{{item}}" group=web_first_two
   loop: "{{web_first_two}}"
   tags: ['web_targets']
-
 
 - name: set mids_first_three group
   add_host: name="{{item}}" group=mids_first_three

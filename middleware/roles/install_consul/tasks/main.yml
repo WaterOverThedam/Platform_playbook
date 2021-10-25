@@ -6,28 +6,11 @@
     enablerepo: winning
     state: present
 
-- name: config {{ soft_name }} server
-  template:
-    src: '{{ item.src }}'
-    dest: '{{ item.dest }}'
-  loop:
-    - { src: 'consul.j2', dest: '{{ conf_dir }}/consul' }
-  tags: config
-
-- name: restart {{ soft_name }}
-  systemd:
-    name: '{{ soft_name }}'
-    state: restarted
-    enabled: yes
-    daemon_reload: yes
-  tags: restart
-
-- name: '【wait for consul port 8500 open】'
-  wait_for:
-    port: 8500
-    delay: 4
-    timeout: 20
-
-- name: create {{ soft_name }} cluster
-  shell: consul join {{ mid_targets[0] }}
-  when: inventory_hostname != mid_targets[0]
+- name: server deployment
+  include: server.yml
+  when: "inventory_hostname|regex_search('mid')"
+  tags: "server"
+- name: agent deployment
+  include: agent.yml
+  when: "not inventory_hostname|regex_search('mid') and inventory_hostname|regex_search('app') and expanded_consul|default(false,true) == true" 
+  tags: "agent"

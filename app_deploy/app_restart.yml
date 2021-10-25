@@ -1,7 +1,9 @@
 - name: restart backend app
-  hosts: '*app*:!dmts_app*'
+  hosts: '*:!dmts*'
   gather_facts: False
   vars_files:
-    - config_vars.yml
+    - "{{config}}"
   roles:
-    - {role: app_restart ,tags: app_restart}
+    - {role: app_stop ,tags: app_stop ,when: "inventory_hostname|regex_search('app')"}
+    - {role: mid_restart ,tags: mid_restart ,when: "inventory_hostname|regex_search('mid')"}
+    - {role: app_start ,tags: app_start ,when: "inventory_hostname|regex_search('app')"}

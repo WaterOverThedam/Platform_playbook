@@ -15,7 +15,7 @@
 
     - name: remove consul
       yum: name=consul state=removed
-      when: inventory_hostname|regex_search('(?!dmts_)mid')
+      when: not inventory_hostname|regex_search('dmts')
       tags: ['consul']
     - name: remove rabbitmq
       yum: name=rabbitmq state=removed
@@ -23,7 +23,7 @@
       tags: ['rabbitmq']
     - name: remove redis
       yum: name=redis state=removed
-      when: inventory_hostname|regex_search('(?!dmts_)mid')
+      when: not inventory_hostname|regex_search('dmts')
       tags: ['redis']
     - name: remove elsticsearch
       yum: name=elasticsearch state=removed

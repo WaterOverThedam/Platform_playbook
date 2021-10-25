@@ -1,6 +1,6 @@
 ---
 - name: prepare
-  hosts: '*mid*:*app*'
+  hosts: '*mid*:*app*:*web*:!*dmts*'
   gather_facts: False
   become: yes
   roles:

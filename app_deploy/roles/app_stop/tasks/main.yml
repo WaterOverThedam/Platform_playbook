@@ -1,0 +1,55 @@
+---
+
+- name: find app worker dir
+  script: "get_workdir_config.sh"
+  register: res
+  tags: ['config']
+
+- name: get configs all
+  set_fact:
+    config: '{{item.split("|")}}'
+  register: configs
+  loop: '{{res.stdout_lines}}'
+  tags: ['config']   
+
+- name: set config_file
+  set_fact:
+    config_files: '{{configs.results|map(attribute="ansible_facts.config.0")|list}}'
+  tags: ['config']
+- name: set work_dirs
+  set_fact:
+    work_dirs: '{{configs.results|map(attribute="ansible_facts.config.1")|list}}'
+  tags: ['config']
+
+- name: filtering configs 
+  set_fact:
+    config_files: "{{config_files|select('regex',filters)|list}}"
+    work_dirs: "{{work_dirs|select('regex',filters)|list}}"
+  when: filters|default('',true)!=''
+  tags: ['config']
+
+- name: backup win60 app config before replace
+  script: "backup_backend_config.sh {{replacements[0].former}}"
+  when: "replace_enable and replacements[0].former|default('',true)!=''"
+  tags: ['backup_config']
+  
+- {include: replace.yml, when: replace_enable, loop: '{{replacements|selectattr("former", "search", "\S+")|list}}', tags: ['replace']}
+
+- name: 'stopping apps....'
+  become: "{{sudo}}"
+  shell: './stop.sh' 
+  args:
+    chdir: '{{item.1}}'
+  with_indexed_items: "{{work_dirs}}"
+  tags: ['stop','restart']
+
+- name: make sure file permissions
+  become: "{{sudo}}"
+  file:
+    path: "{{item}}"
+    owner: winning
+    group: winning
+    recurse: yes
+  loop: ['{{app_path.app}}','{{app_path.log}}']  
+  when: "sudo=='yes'"
+  tags: ['stop','perm']

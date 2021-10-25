@@ -1,9 +1,19 @@
+- name: install {{ soft_name }}
+  yum:
+    update_cache: yes
+    name: '{{ soft_name }}'
+    enablerepo: winning
+    state: present
+
 - name: stop default redis
   ignore_errors: yes
   systemd:
-    name: "{{ soft_name }}"
+    name: "{{ item }}"
     state: stopped
     enabled: no
+  with_items:
+    - redis
+    - redis3
 
 - name: config {{ soft_name }} cluster file
   template:
@@ -13,20 +23,18 @@
     - { src: 'redis_6381.conf.j2', dest: '{{ conf_dir }}/redis_6381.conf' }
     - { src: 'redis_6382.conf.j2', dest: '{{ conf_dir }}/redis_6382.conf' }
 
-- name: restart {{ soft_name }}1
+- name: restart {{ soft_name }} cluster
   systemd:
-    name: "{{ soft_name }}1"
+    name: "{{ item }}"
     state: restarted
     enabled: yes
     daemon_reload: yes
+  with_items:
+    - redis1
+    - redis2
 
-- name: restart {{ soft_name }}2
-  systemd:
-    name: "{{ soft_name }}2"
-    state: restarted
-    enabled: yes
-    daemon_reload: yes
-
+- debug: "msg='{bash {{ ctl_scpt }} create_cluster {{ redis_hosts }}'"
+  when: inventory_hostname == groups.mids_first_three[0]
 - name: create cluster
-  shell: bash {{ ctl_scpt }} create_cluster {{ cluster_nodes }}
+  shell: bash {{ ctl_scpt }} create_cluster {{ redis_hosts }}
   when: inventory_hostname == groups.mids_first_three[0]

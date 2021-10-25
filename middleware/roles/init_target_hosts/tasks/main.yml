@@ -1,4 +1,4 @@
 ---
 
-- {include: set_target_group.yml, run_once: true}
-- {include: set_clusterhost_config.yml}
+- {include: set_target_group.yml, run_once: true, tags: "targets_group" }
+- {include: set_clusterhost_config.yml ,tags: "targets_config"}

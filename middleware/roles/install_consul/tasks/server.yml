@@ -1,0 +1,38 @@
+---
+
+- name: config {{ soft_name }} server
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+  loop:
+    - { src: 'consul.server.j2', dest: '{{ conf_dir }}/consul' }
+  when: "inventory_hostname|regex_search('mid')"
+  tags: config
+
+#主节点
+- name: restart {{ soft_name }}
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  when: inventory_hostname == mid_targets[0]
+  tags: restart
+- name: '【wait for consul port 8500 open】'
+  wait_for:
+    port: 8500
+    delay: 4
+    timeout: 20
+  when: inventory_hostname == mid_targets[0]
+#备节点
+- name: restart server {{ soft_name }} 
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
+  when: "inventory_hostname != mid_targets[0]"
+  tags: restart
+- name: create {{ soft_name }} cluster
+  shell: consul join {{ mid_targets[0] }}
+  when: "inventory_hostname != mid_targets[0]"

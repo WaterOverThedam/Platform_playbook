@@ -1,5 +1,5 @@
 ---
-- name: init new system
+- name: checking if all mids is enabled
   hosts: all
   gather_facts: False
   vars:

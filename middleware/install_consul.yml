@@ -1,8 +1,7 @@
 ---
 - name: INSTALL consul server
-  hosts: "mids_first_three"
+  hosts: "mid_app_targets"
   gather_facts: False
   become: yes
   roles:
     - {role: install_consul, tags: ['consul']}
-

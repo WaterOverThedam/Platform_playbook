@@ -1,0 +1,21 @@
+- name: "restart maraidb to release connections"
+  become: yes
+  systemd: name=redis state=restarted
+  tags: ['mariadb']
+
+- name: "stop redis to remove cache"
+  become: yes
+  systemd: name=redis state=stopped
+  tags: ['redis']
+
+- name: Waits for port redis of any IP to close active connections, don't start checking for 10 seconds
+  wait_for:
+    host: 0.0.0.0
+    port: 6379
+    delay: 10
+    state: drained
+
+- name: "start redis"
+  become: yes
+  systemd: name=redis state=started
+  tags: ['redis']

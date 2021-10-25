@@ -1,0 +1,10 @@
+replace_enable: False
+revert_enable: False
+xxl_job_db: '172.17.0.162'
+ops: '172.17.0.161'
+sudo: "no"
+ansible_ssh_user: root
+replacements:
+  - {former: 'WIN60_CHEYYZQ_2692', new: 'WIN60_NTLNKF_2800', type: 'db_query'}
+  - {former: 'THIS4_CHEYYZQ', new: 'THIS4_NTLNKF', type: 'db_query'}
+  - {former: '992156', new: '992802', type: 'soid'}

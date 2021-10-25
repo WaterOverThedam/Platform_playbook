@@ -3,10 +3,13 @@
   hosts: 'all:!cloudhost:!ops*'
   vars:
     err_msgs: []
+    title: "[{{inventory_hostname}}] {{ansible_ssh_host}}"
   pre_tasks:
-    - { include_tasks: env_check.yml,
-        when: ansible_env_check|default('true') == 'true'
-      }
+    - name: "磁盘挂载预处理"
+      script: "{{playbook_dir}}/mount_winning.sh"
+      when: ansible_env_check|default(true) == true
+    - include: env_check.yml
+      when: ansible_env_check|default(true) == true
     - name: '环境不符合要求，则强制中止任务'
       fail: msg={{err_msgs|join(" ")}}
       when: err_msgs|length > 0

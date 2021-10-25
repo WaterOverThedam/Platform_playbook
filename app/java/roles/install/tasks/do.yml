@@ -126,12 +126,12 @@
 
 - debug: var=app_console_out.stdout
 
-- name: tail wdsfhir app console.log
-  shell: 'tail -20 {{log_wdsfhir_path}}'
-  register: app_console_out
-  when: app_info.module_type == 'WINNING_MS_WDSFHIR'
-  ignore_errors: true
-  tags: ['install']
-
-- debug: var=app_console_out.stdout
+#- name: tail wdsfhir app console.log
+#  shell: 'tail -20 {{log_wdsfhir_path}}'
+#  register: app_console_out
+#  when: app_info.module_type == 'WINNING_MS_WDSFHIR'
+#  ignore_errors: true
+#  tags: ['install']
+#
+#- debug: var=app_console_out.stdout
 

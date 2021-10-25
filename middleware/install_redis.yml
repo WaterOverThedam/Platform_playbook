@@ -1,6 +1,6 @@
 ---
 - name: INSTALL redis
-  hosts: "mid_targets"
+  hosts: "redis_targets"
   gather_facts: False
   become: yes
   roles:

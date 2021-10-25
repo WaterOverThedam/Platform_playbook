@@ -1,0 +1,28 @@
+
+- name: set replacing variables
+  set_fact: 
+    match_str: "{{item.former if revert_enable==False else item.new}}"
+    replacements: "{{item.new if revert_enable==False else item.former}}"
+  tags: ['vars']
+
+- debug: 
+    msg: "{{role_path}}/files/update_xxl_job_soid.sh {{xxl_job_db}} {{match_str}} {{replacements}}"
+  tags: ['exec','xxl_job']
+- name: "update soid for xxl_job db"
+  shell: "{{role_path}}/files/update_xxl_job_soid.sh {{xxl_job_db}} {{match_str}} {{replacements}}"
+  when: "item.type|default('',true)=='soid'"
+  delegate_to: localhost
+  tags: ['exec','xxl_job']
+
+- name: further query from h2 and multi replace
+  include: get_database_url.yml
+  when: "item.type|default('',true)=='db_query'"
+  tags: ['multi_exec','query']
+
+- name: simple file and h2 replace
+  include: file_and_h2_replace.yml 
+  when: "item.type|default('',true)!='db_query'"
+  tags: ['multi_exec']
+
+
+   

@@ -18,8 +18,8 @@ export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ log_path }}/erro
 export JAVA_OPTS="{{ app_info.java_opts_def }} -Xloggc:{{ log_path }}/gc/gc.log "
 
 export JAVA_OPTS="{{ app_info.java_opts_def }} -DdisableApollo=true -Dapollo.bootstrap.enabled=false -DinstanceSerial={{ app_info.instance_serial }} -Dspring.pid.file=server.pid "
-{% if app_info.module_type == 'java_integration_module' %}
-export JAVA_OPTS="{{ app_info.java_opts_def }} -DoneJarOnly=true -DdisableCommBiz={{ app_info.disable_comm_biz }} -Dframework={{ app_info.framework_version }} "
+{% if app_info.deploy_type == 'littledepl' %}
+export JAVA_OPTS="{{ app_info.java_opts_def }} -DoneJarOnly={{ app_info.one_jar_only }} -DdisableCommBiz={{ app_info.disable_comm_biz }} -Dframework={{ app_info.framework_version }} "
 export JAVA_OPTS="{{ app_info.java_opts_def }} -DdisableWebSecurity={{ app_info.disable_web_security }} -Dprofile={{ app_info.profile_sign }} "
 {% endif%}
 
@@ -28,7 +28,7 @@ export JAVA_OPTS="{{ app_info.java_opts_def }} {{ app_info.win_java_opts }} "
 {% endif%}
 
 {% if app_info.svn_app_jar_path == 'boot' %}
-nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -DbaseHome={{ deploy_path }}/boot -jar {{ deploy_path }}/launcher-1.3-SNAPSHOT.jar "$@" >/dev/null 2>&1 &
+nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -DbaseHome={{ deploy_path }}/boot -jar $JARFILE "$@" >/dev/null 2>&1 &
 {% else %}
 nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -jar {{ deploy_path }}/main.jar "$@" >/dev/null 2>&1 &
 {% endif%}

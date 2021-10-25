@@ -26,7 +26,8 @@ nohup java {{ app_info.mem_opts }} \
 
 export WINAPPID="{{ app_info.win_appid }}"
 export WINPORT="{{ app_info.win_port }}"
-{% if app_info.module_type == 'java_integration_module' %}
+{% if app_info.deploy_type == 'littledepl' %}
+## 小包组合部署
 export JARFILE="{{ deploy_path }}/boot/base/launcher/launcher-1.5-SNAPSHOT.jar"
 {% else %}
 export JARFILE="{{ deploy_path }}/launcher-1.3-SNAPSHOT.jar"

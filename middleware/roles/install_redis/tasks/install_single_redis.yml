@@ -1,0 +1,17 @@
+- name: install standalone {{ soft_name }}
+  yum:
+    update_cache: yes
+    name: '{{ soft_name }}'
+    enablerepo: winning
+    state: present
+
+- name: stop default redis
+  ignore_errors: yes
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+  with_items:
+    - redis1
+    - redis2
+    - redis3

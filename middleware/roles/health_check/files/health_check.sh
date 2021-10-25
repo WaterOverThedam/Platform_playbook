@@ -15,6 +15,7 @@ fi
 
 echo "-----【check consul】------"
   consul operator raft list-peers
+  consul members
   wget  -O - localhost:8500/v1/catalog/services|python -mjson.tool
 echo "----【check rabbitmq】-----"
   rabbitmqctl cluster_status

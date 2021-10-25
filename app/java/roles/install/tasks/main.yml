@@ -2,17 +2,27 @@
 - { include: do.yml, loop: '{{ app_infos }}',
     loop_control: { loop_var: app_info },
     when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'ansidepl',
+    no_log: true,
     tags: ['install']
   }
+# 小包部署，组合子模块的方式 littledepl
+- { include: do_littlepkg.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'littledepl',
+    no_log: true,
+    ags: ['install']
+}
 # his服务部署
-- { include: do.yml, loop: '{{ app_infos }}',
+- { include: do_wdsfhir.yml, loop: '{{ app_infos }}',
     loop_control: { loop_var: app_info },
     when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'wdshisdepl',
+    no_log: true,
     tags: ['install']
 }
 # tmts服务部署
 - { include: do_tmts.yml, loop: '{{ app_infos }}',
     loop_control: { loop_var: app_info },
     when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'tmtsdepl',
+    no_log: true,
     tags: ['install']
 }

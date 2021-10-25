@@ -1,0 +1,8 @@
+- name: 'starting apps....'
+  shell: './startup.sh' 
+  async: 1
+  poll: 0
+  args:
+    chdir: '{{item.1}}'
+  with_indexed_items: "{{work_dirs}}"
+  tags: ['start','restart']

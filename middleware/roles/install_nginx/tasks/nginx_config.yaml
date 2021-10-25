@@ -14,7 +14,7 @@
   lineinfile:
      path: /winning/winmid/nginx/conf/nginx.conf
      regex: '^    access_log'
-     line: "    access_log syslog:server={{ansible_env.SSH_CLIENT.split(' ')[0]}}:514 main;"
+     line: "    access_log syslog:server={{hostvars['cloudhost'].ansible_ssh_host}}:514 main;"
 
 - name: set winning permission
   file:

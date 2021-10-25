@@ -5,10 +5,10 @@ mc mb minio/emr
 mc mb minio/finance
 mc mb minio/mdm
 mc mb minio/cooperation
-mc mb minio/encouter
+mc mb minio/encounter
 
 mc  policy  set  public  minio/emr
 mc  policy  set  public  minio/finance
 mc  policy  set  public  minio/cooperation
 mc  policy  set  public  minio/mdm
-mc  policy  set  public  minio/encouter
+mc  policy  set  public  minio/encounter

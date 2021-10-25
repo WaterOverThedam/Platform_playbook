@@ -5,4 +5,6 @@ h2_db_url: "localhost//root/winning_source/h2/data/winning"
 h2_db_user: "admin"
 h2_db_pass: "11"
 ngx_vip: "172.16.208.10"
-check_winning_disk: "true"
+ansible_env_check: true
+expanded_consul: false
+expanded_redis: false

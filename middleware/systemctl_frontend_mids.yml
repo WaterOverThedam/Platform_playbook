@@ -1,5 +1,5 @@
 ---
-- name: "{{state|replace('ed','')}} services"
+- name: "{{state|replace('ed','ing')}} frontend services"
   hosts: '*web*'
   gather_facts: False
   become: yes

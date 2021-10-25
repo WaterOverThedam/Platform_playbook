@@ -37,6 +37,10 @@
     host_all: "{{host_all + extra_ips.split(',')}}"
   when: extra_ips is defined
 
+- name: get ip span
+  register: ip_span
+  shell: "IP={{ansible_ssh_host}}; echo ${IP%.*}.0/0"
+
 - name: show white list
-  debug: var=host_all|join('\n')
+  debug: var=host_all
 #- debug: msg="{{ inventory_dir}} ,{{ inventory_dir | dirname }} ,{{ inventory_dir.split("/")[0:-1]|join("/") }} "

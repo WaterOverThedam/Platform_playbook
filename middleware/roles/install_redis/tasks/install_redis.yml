@@ -1,6 +1,0 @@
-- name: install {{ soft_name }}
-  yum:
-    update_cache: yes
-    name: '{{ soft_name }}'
-    enablerepo: winning
-    state: present

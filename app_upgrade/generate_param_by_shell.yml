@@ -1,6 +1,6 @@
 ---
 - name: check params given
-  hosts: '*app*'
+  hosts: '*app*:!*dmts_app*'
   gather_facts: False
   roles:
     - {role: generate_params_for_apps, tags: ['gen','gen_params'],run_once: True, delegate_to: localhost}

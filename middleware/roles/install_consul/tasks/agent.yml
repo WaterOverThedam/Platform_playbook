@@ -1,0 +1,17 @@
+---
+
+- name: config {{ soft_name }} client
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+  loop:
+    - { src: 'consul.client.j2', dest: '{{ conf_dir }}/consul' }
+  tags: config
+
+#客户端
+- name: restart client {{ soft_name }} 
+  systemd:
+    name: '{{ soft_name }}'
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

@@ -11,7 +11,11 @@ fwcmd=/usr/bin/firewall-cmd
 #18087
 #18088
 #'
+
 allow_ips='
+{% if inventory_hostname|search('mid1') %}
+{{ ip_span.stdout }}
+{% endif %}
 {{ host_all|join("\n") }}
 '
 
