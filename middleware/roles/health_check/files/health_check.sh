@@ -3,13 +3,16 @@
 
 echo "------【check redis】------"
 if [ ! -z $1 -a $1 -gt 1 ];then
+  echo "【读写测试】"
   redis-cli -c -p 6381 -a 'winning.2019' --no-auth-warning  set k1 v1 && redis-cli -c -p 6381 -a 'winning.2019' --no-auth-warning get k1
+  echo "【集群检查】"
   redis-cli --cluster check $2  6381 -a 'winning.2019' --no-auth-warning
   echo "【redis压测】合格范围3万-20万，越高越好！"
   redis-benchmark -p 6381 -c 1000 -n 100000 -q -t set,get,hset,lpush,mset
 else 
-  echo "【redis压测】合格范围3万-20万，越高越好！"
+  echo "【读写测试】"
   redis-cli -p 6379 -a 'winning.2019' --no-auth-warning  set k1 v1 && redis-cli -p 6379 -a 'winning.2019' --no-auth-warning get k1
+  echo "【redis压测】合格范围3万-20万，越高越好！"
   redis-benchmark -p 6379 -c 1000 -n 100000 -q -t set,get,hset,lpush,mset
 fi 
 

@@ -26,26 +26,8 @@
   tags: ['install']
 - debug: var=shell_out.stderr_lines
 
-#- name: 移动部署文件到指定目录
-#  shell: 'mv {{ deploy_path }}/boot/* {{ deploy_path }}/ ; rm -rf {{ deploy_path }}/boot'
-#  register: shell_out
-#  when: app_info.svn_app_jar_path != 'boot'
-#  tags: ['install']
 
-#- name: 创建补丁目录
-#  file:
-#      path: "{{ item.path }}"
-#      state: directory
-#      owner: "{{ item.owner }}"
-#      group: "{{ item.group }}"
-#      mode: "{{ item.mode }}"
-#  when:
-#    - app_info.svn_app_jar_path == 'boot'
-#  with_items:
-#      - { path: '{{ deploy_path }}/boot/patch', owner: 'winning', group: 'winning', mode: '0755' }
-#  tags: ['install']
-
-- name: 拷贝配置文件
+- name: 拷贝脚本和配置文件
   copy:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
@@ -54,29 +36,24 @@
       mode: 0755
   with_items:
       - { src: "stop.sh", dest: "{{ deploy_path }}/stop.sh" }
-      - { src: "{{ app_info.application_file_name }}_{{ app_info.win_appid }}", dest: "{{ deploy_path }}/{{ app_info.application_file_name }}" }
-  ignore_errors: true
-  tags: ['install']
-
-- name: 拷贝启动Jar包
-  copy:
-      src: "{{ item.src }}"
-      dest: "{{ item.dest }}"
-      owner: winning
-      group: winning
-      mode: 0755
-  with_items:
-      - { src: "stop.sh", dest: "{{ deploy_path }}/stop.sh" }
-      - { src: "launcher/launch-0.0.1-SNAPSHOT.jar", dest: "{{ deploy_path }}/launcher/launch-0.0.1-SNAPSHOT.jar" }
+      - { src: "launcher/launch-0.0.2-SNAPSHOT.jar", dest: "{{ deploy_path }}/launcher/launch-0.0.2-SNAPSHOT.jar" }
+      - { src: "configure/application.properties", dest: "{{ deploy_path }}/configure/application.properties" }
       - { src: "configure/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
-      - { src: "configure/emrdesigner.properties", dest: "{{ deploy_path }}/configure/emrdesigner.properties" }
-      - { src: "configure/system.properties", dest: "{{ deploy_path }}/configure/system.properties" }
-      - { src: "configure/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
-      - { src: "configure/build-info.xml", dest: "{{ deploy_path }}/configure/build-info.xml" }
-      - { src: "configure/build-metadata.xml", dest: "{{ deploy_path }}/configure/build-metadata.xml" }
+      - { src: "configure/services.json", dest: "{{ deploy_path }}/configure/services.json" }
       - { src: "configure/cleanIlog.properties", dest: "{{ deploy_path }}/configure/cleanIlog.properties" }
       - { src: "configure/logback.xml", dest: "{{ deploy_path }}/configure/logback.xml" }
-      - { src: "configure/lui_params.json", dest: "{{ deploy_path }}/configure/lui_params.json" }
+  tags: ['install']
+
+- name: 拷贝datasource配置文件
+  copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "configure/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
+  when: app_info.repository_name == 'winex-deliver-aaio'
   tags: ['install']
 
 - name: 生成启动脚本

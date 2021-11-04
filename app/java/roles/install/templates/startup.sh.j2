@@ -9,9 +9,13 @@ nohup java -jar {{ app_info.mem_opts }} {{ deploy_path }}/winning-wds-fhir-his.j
 
 #!/bin/bash
 
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:HeapDumpPath={{ deploy_path }}/ms_logs/heapdump-%p.hprof "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ deploy_path }}/ms_logs/hs_err_pid<pid>.log "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -Xloggc:{{ deploy_path }}/ms_logs/gc.log "
+
 cd {{ deploy_path }}
 
-nohup java {{ app_info.mem_opts }} \
+nohup java {{ app_info.java_opts_def }} {{ app_info.mem_opts }} \
  -Duser.timezone=GMT+08 -Djava.awt.headless=true\
  -Dorg.eclipse.jetty.server.Request.maxFormContentSize=104857600\
  -Djavax.xml.bind.context.factory=com.sun.xml.internal.bind.v2.ContextFactory\
@@ -20,6 +24,26 @@ nohup java {{ app_info.mem_opts }} \
  -Dcom.sun.management.jmxremote.ssl=false\
  -Ddatabase.show.sql=false\
  -classpath {{ deploy_path }}/launcher/launch-0.0.1-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime "$@" &
+
+{% elif app_info.deploy_type == 'aaiodepl'  %}
+
+#!/bin/bash
+
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:HeapDumpPath={{ deploy_path }}/ms_logs/heapdump-%p.hprof "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ deploy_path }}/ms_logs/hs_err_pid<pid>.log "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -Xloggc:{{ deploy_path }}/ms_logs/gc.log "
+
+cd {{ deploy_path }}
+
+nohup java {{ app_info.java_opts_def }} {{ app_info.mem_opts }} \
+ -Duser.timezone=GMT+08 -Djava.awt.headless=true\
+ -Dorg.eclipse.jetty.server.Request.maxFormContentSize=104857600\
+ -Djavax.xml.bind.context.factory=com.sun.xml.internal.bind.v2.ContextFactory\
+ -Djava.rmi.server.hostname=127.0.0.1\
+ -Dcom.sun.management.jmxremote.authenticate=false\
+ -Dcom.sun.management.jmxremote.ssl=false\
+ -Ddatabase.show.sql=false\
+ -classpath {{ deploy_path }}/launcher/launch-0.0.2-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime "$@" &
 
 {% else %}
 ## 其他部署模式

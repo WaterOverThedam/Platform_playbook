@@ -1,0 +1,24 @@
+---
+
+- name: generate password string
+  register: pass
+  script: "gen_pass.sh"
+  delegate_to: localhost
+
+- name: update user password
+  user:
+    name: "{{ user }}"
+    password: "{{ pass.stdout | password_hash('sha512') }}"
+    update_password: always
+    state: present
+  delegate_to: "{{item}}"
+  tags: ['confbash','create_user']
+
+- name: reset user
+  shell: "pam_tally2 -r -u winning" 
+  delegate_to: "{{item}}"
+
+- name: summerize user pass
+  set_fact:
+    passwords: "{{ passwords + [{'host': hostvars[item].inventory_hostname~'-'~hostvars[item].ansible_ssh_host,'pass': pass.stdout}]}}"
+  delegate_to: localhost

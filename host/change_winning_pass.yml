@@ -1,0 +1,14 @@
+---
+- name: changing winning password
+  hosts: 'all'
+  gather_facts: false
+  vars:
+    passwords: []
+    user: "winning"
+  tasks:
+  - debug: var=hostvars
+  roles:
+    - {role: change_password, become: yes, run_once: true}
+  post_tasks:
+    - debug: "var=passwords"
+      run_once: true

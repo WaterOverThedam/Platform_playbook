@@ -82,37 +82,10 @@
 - name: install public packages
   yum:
     update_cache: yes
-    name:
-      - vim
-      - at
-      - zip
-      - dos2unix
-      - unzip
-      - ntpdate
-      - htop
-      - rsync
-      - wget
-      - lrzsz
-      - crontabs
-      - iftop
-      - telnet
-      - traceroute
-      - sysstat
-      - net-tools
-      - bc
-      - tree
-      - nc
-      - jdk
-      - hping3
-      - subversion
-      - dstat
-      - strace
-      - ltrace
-      - iotop
-      - lsof
-      - openssh
+    name: '{{ basic_pkgs }}'
     enablerepo: winning
     state: present
+  tags: ['yum']
 
 - name: copy and unarchive agent bin files
   unarchive: 'src={{item.src}} dest={{item.dest}} copy=yes owner=winning group=winning mode=0755 copy=yes'
@@ -138,10 +111,8 @@
 
 - name: create service for agentmon
   shell: "chkconfig --add agentmon"
-  tags: install_agent
-
-- name: enable agentmon
-  service: name=agentmon state=restarted enabled=yes
+  notify:
+    - restart agentmon
   tags: install_agent
 
 - name: copy local pkgs for ncdu tcping and so on

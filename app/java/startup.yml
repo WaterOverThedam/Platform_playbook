@@ -3,6 +3,6 @@
   hosts: app
   gather_facts: False
   vars_files:
-      - values.yml
+      - "{{vars_file_name}}"
   roles:
       - {role: startup, tags: ['start', 'restart']}

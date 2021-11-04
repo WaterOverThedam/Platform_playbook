@@ -1,0 +1,11 @@
+---
+- name: changing winning password
+  hosts: 'all:!cloudhost:!ops*'
+  gather_facts: false
+  vars_files:
+    - global_vars.yml
+  vars:
+    err_msgs: []
+    title: "[{{inventory_hostname}}] {{ansible_ssh_host}}"
+  roles:
+    - {role: check_if_initialized, become: yes}

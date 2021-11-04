@@ -3,7 +3,7 @@
   hosts: all
   gather_facts: False
   vars_files:
-      - values.yml
+      - "{{vars_file_name}}"
   roles:
       - {role: install, tags: ['install']}
 

@@ -18,5 +18,7 @@
     state: restarted
   delegate_to: localhost
 
+- name: restart agentmon
+  service: name=agentmon state=restarted enabled=yes
 
 

@@ -1,7 +1,7 @@
 - name: app deploy path
   debug: var=deploy_path
 
-- name: stop java application
+- name: 停止服务
   shell: './stop.sh'
   args:
       chdir: "{{ deploy_path }}"

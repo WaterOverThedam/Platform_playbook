@@ -1,6 +1,8 @@
 ---
 - name: init new system
   hosts: 'all:!cloudhost:!ops*'
+  vars_files:
+    - global_vars.yml
   vars:
     err_msgs: []
     title: "[{{inventory_hostname}}] {{ansible_ssh_host}}"

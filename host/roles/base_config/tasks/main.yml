@@ -76,16 +76,16 @@
     name: firewalld
     state: started
     enabled: yes
-  when: "inventory_hostname|regex_search('mid\\d$') and not inventory_hostname|regex_search('dmts')"
+  when: "inventory_hostname|regex_search('mid.*\\d$') and not inventory_hostname|regex_search('dmts')"
   tags: ["firewall"]
 
 - name: config firewall rules
   template: src="win-firewall.j2" dest="/etc/init.d/win-firewall" mode=0755
   tags: ["firewall"]
-  when: "inventory_hostname|regex_search('mid\\d$') and not inventory_hostname|regex_search('dmts')"
+  when: "inventory_hostname|regex_search('mid.*\\d$') and not inventory_hostname|regex_search('dmts')"
 - name: execute firewall rules
   shell: "/etc/init.d/win-firewall"
-  when: "inventory_hostname|regex_search('mid\\d$') and not inventory_hostname|regex_search('dmts')"
+  when: "inventory_hostname|regex_search('mid.*\\d$') and not inventory_hostname|regex_search('dmts')"
   tags: ["firewall"]
 
 #- name: config firewalld

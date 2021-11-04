@@ -1,7 +1,11 @@
+- name: 应用HTML路径
+  debug: var=run_path
+
 - name: 删除历史文件
   file:
       path: "{{ run_path }}"
       state: absent
+  become: yes
   tags: ['install']
 
 # ensure install path exists and ensure the derectory mode 0755

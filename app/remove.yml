@@ -1,0 +1,29 @@
+---
+- name: 归纳文件
+  hosts: all
+  gather_facts: False
+  tasks:
+      - name: create tmp directory
+        file:
+            path: "{{item.path}}"
+            state: directory
+            mode: "{{item.mode}}"
+        with_items:
+            - { path: "/tmp/values", mode: "0755" }
+            - { path: "/tmp/hosts",  mode: "0755" }
+      - name: copy file
+        copy:
+            src: "{{item.src}}"
+            dest: "{{item.dest}}"
+            mode: "{{item.mode}}"
+        with_items:
+            - { src: "{{vars_file_name}}",dest: "/tmp/values/", mode: "0755" }
+            - { src: "{{host_file_name}}", dest: "/tmp/hosts/", mode: "0755" }
+      - name: delete file
+        file:
+            path: "{{item.path}}"
+            state: absent
+        with_items:
+            - { path: "{{vars_file_name}}" }
+            - { path: "{{host_file_name}}" }
+

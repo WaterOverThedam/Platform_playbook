@@ -6,6 +6,8 @@
         state: absent
         regexp: 'nameserver'
     - shell: |
-        grep -ie '^\s*DNS' /etc/sysconfig/network-scripts/ifcfg-e* && sed -ri '/^\s*DNS/Id' $_ || /bin/true
+        grep -ie '^\s*DNS' /etc/sysconfig/network-scripts/ifcfg-e* && sed -ri '/^\s*DNS/Id' /etc/sysconfig/network-scripts/ifcfg-e* || /bin/true
+    - shell: |
+        grep -ie 'ONBOOT="no"' /etc/sysconfig/network-scripts/ifcfg-e* && sed -ri 's/ONBOOT="no"/ONBOOT="yes"/' /etc/sysconfig/network-scripts/ifcfg-e* || /bin/true
   tags:
     - dns_remove

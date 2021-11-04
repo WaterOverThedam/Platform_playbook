@@ -19,9 +19,10 @@
 - name: get h2 param
   set_fact:
     hosts: "{{ lookup('pipe','sh {{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{host_all_sql}}') }}"
-    yum_addr: "{{ lookup('pipe','sh {{role_path}}/files/getH2_value.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} yumaddress') }}"
+    yum_addr: "{{ yum_addr|default(lookup('pipe','sh {{role_path}}/files/getH2_value.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} yumaddress'),true) }}"
     ntp_server: "{{ lookup('pipe','sh {{role_path}}/files/getH2_value.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} ntpserver') }}"
   tags: ['install_agent']
+  
 - debug: var=yum_addr
 - debug: var=ntp_server
 

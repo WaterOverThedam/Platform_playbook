@@ -1,7 +1,7 @@
 - name: app deploy path
   debug: var=deploy_path
 
-- name: stop java application
+- name: 停止服务
   shell: './stop.sh'
   args:
       chdir: "{{ deploy_path }}"
@@ -11,26 +11,34 @@
   tags: ['restart', 'stop']
 - debug: var=stop_out.stdout
 
-- name: startup java application
+- name: 启动服务
   shell: './startup.sh'
   args:
       chdir: "{{ deploy_path }}"
   when: app_info.module_type is match 'WINNING_MS*'
   tags: ['restart', 'start']
 
-- name: wait 3s
+- name: 等待3秒
   pause: seconds=3
   tags: ['restart', 'start']
 
-- name: tail app console.log
+- name: 打印应用20行日志
   shell: 'tail -20 {{ log_path }}/console.log'
   register: app_console_out
-  when: app_info.module_type != 'WINNING_MS_WDSFHIR'
+  when: app_info.module_type != 'WINNING_MS_WDSFHIR' and app_info.deploy_type != 'aaiodepl'
   ignore_errors: true
   tags: ['install']
 - debug: var=app_console_out.stdout
 
-- name: tail wdsfhir app console.log
+- name: 打印AAIO应用20行日志
+  shell: 'tail -20 {{ log_path }}/console.log'
+  register: app_console_out
+  when: app_info.deploy_type == 'aaiodepl'
+  ignore_errors: true
+  tags: ['install']
+- debug: var=app_console_out.stdout
+
+- name: 打印HIS服务20行日志
   shell: 'tail -20 {{log_wdsfhir_path}}'
   register: app_console_out
   when: app_info.module_type == 'WINNING_MS_WDSFHIR'
