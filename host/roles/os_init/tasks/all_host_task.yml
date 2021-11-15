@@ -1,10 +1,10 @@
 #去DNS,所有主机
 - block:
-    - name: remove DNS if exists
+    - name: empty DNS if exists
       lineinfile:
         dest: /etc/resolv.conf
         state: absent
-        regexp: 'nameserver'
+        regexp: '^(.+)$'
     - shell: |
         grep -ie '^\s*DNS' /etc/sysconfig/network-scripts/ifcfg-e* && sed -ri '/^\s*DNS/Id' /etc/sysconfig/network-scripts/ifcfg-e* || /bin/true
     - shell: |

@@ -6,7 +6,6 @@
     passwords: []
     user: "winning"
   tasks:
-  - debug: var=hostvars
   roles:
     - {role: change_password, become: yes, run_once: true}
   post_tasks:

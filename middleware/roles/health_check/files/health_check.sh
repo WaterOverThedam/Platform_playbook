@@ -24,6 +24,7 @@ echo "----【check rabbitmq】-----"
   rabbitmqctl cluster_status
   rabbitmqctl list_users
   rabbitmqctl list_policies
+  curl -XGET -u admin:win.2019 http://127.0.0.1:15672/api/queues
 echo "----【check elsticsearch】-----"
   curl 127.0.0.1:19200/_cat/nodes?v 
   curl http://127.0.0.1:19200/_cluster/settings?pretty

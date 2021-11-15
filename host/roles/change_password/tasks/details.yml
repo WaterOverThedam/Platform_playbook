@@ -12,13 +12,23 @@
     update_password: always
     state: present
   delegate_to: "{{item}}"
-  tags: ['confbash','create_user']
+  tags: ['update_pass','create_user']
 
 - name: reset user
-  shell: "pam_tally2 -r -u winning" 
+  shell: "pam_tally2 -r -u winning"
   delegate_to: "{{item}}"
+  tags: ['update_pass','create_user']
+
+- name: get encoded pass
+  register: encoded_pass
+  shell: "java -jar {{playbook_dir}}/files/getPlaintext.jar '2' '{{pass.stdout}}'"
+  delegate_to: localhost
+
+- name: HOSTS switch login user to winning and update the pass on h2
+  local_action: "shell sh {{playbook_dir}}/roles/os_init/files/change2winning.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{item}} '{{encoded_pass.stdout}}'"
+  tags: ['change_pass']
 
 - name: summerize user pass
   set_fact:
-    passwords: "{{ passwords + [{'host': hostvars[item].inventory_hostname~'-'~hostvars[item].ansible_ssh_host,'pass': pass.stdout}]}}"
+    passwords: "{{ passwords + [{'host': hostvars[item].inventory_hostname~'-'~hostvars[item].ansible_ssh_host,'pass': pass.stdout,'encoded_pass': encoded_pass.stdout}]}}"
   delegate_to: localhost
