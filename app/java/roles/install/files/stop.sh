@@ -20,10 +20,10 @@ fstop()
 {
     check
     if (($? == 1));then
-        echo "【$APP_DEPLOY_PATH】 server has been stopped!!!"
+        echo "【$APP_DEPLOY_PATH】 service has been stopped!!!"
     else
         spid=`ps aux | grep -v grep | grep $APP_DEPLOY_PATH | awk 'NR==1{print $2}'`
-        echo -n "【$APP_DEPLOY_PATH】 server pid:$spid force to stop ..."
+        echo -n "【$APP_DEPLOY_PATH】 service pid:$spid force to stop ..."
 
         kill -9 $spid
 
@@ -48,11 +48,11 @@ stop()
 {
     check
     if (($? == 1));then
-        echo "【$APP_DEPLOY_PATH】 server has been stopped!!!"
+        echo "【$APP_DEPLOY_PATH】 service has been stopped!!!"
     else
 
         spid=`ps aux | grep -v grep | grep $APP_DEPLOY_PATH | awk 'NR==1{print $2}'`
-        echo -n "【$APP_DEPLOY_PATH】 pid:$spid server to stop..."
+        echo -n "【$APP_DEPLOY_PATH】 pid:$spid service to stop..."
 
         kill -15 $spid
         ## 重试10次

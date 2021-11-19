@@ -1,13 +1,32 @@
 #!/bin/bash
 
+APP_DEPLOY_PATH={{ deploy_path }}
+
+check()
+{
+    spid=`ps aux | grep -v grep | grep $APP_DEPLOY_PATH | awk 'NR==1{print $2}'`
+    if [ ! $spid ];then
+        return 0;
+    else
+        # running
+        return 1;
+    fi
+}
+
+check
+if (($? == 1));then
+    echo -e " \033[32m【$APP_DEPLOY_PATH】 service has been started!!!\033[1m\033[0m"
+    exit 0
+else
+    echo -e " \033[32m【$APP_DEPLOY_PATH】 service starting...\033[1m\033[0m"
+fi
+
 {% if app_info.deploy_type == 'wdshisdepl' %}
 ## HIS部署模式
 cd {{ deploy_path }}
 nohup java -jar {{ app_info.mem_opts }} {{ deploy_path }}/winning-wds-fhir-his.jar "$@" &
 
 {% elif app_info.deploy_type == 'tmtsdepl'  %}
-
-#!/bin/bash
 
 export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:HeapDumpPath={{ deploy_path }}/ms_logs/heapdump-%p.hprof "
 export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ deploy_path }}/ms_logs/hs_err_pid<pid>.log "
@@ -26,8 +45,6 @@ nohup java {{ app_info.java_opts_def }} {{ app_info.mem_opts }} \
  -classpath {{ deploy_path }}/launcher/launch-0.0.1-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime "$@" &
 
 {% elif app_info.deploy_type == 'aaiodepl'  %}
-
-#!/bin/bash
 
 export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:HeapDumpPath={{ deploy_path }}/ms_logs/heapdump-%p.hprof "
 export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ deploy_path }}/ms_logs/hs_err_pid<pid>.log "

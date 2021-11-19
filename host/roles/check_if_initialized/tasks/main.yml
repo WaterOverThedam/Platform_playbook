@@ -1,13 +1,13 @@
-- name: check initialization status
+- name: 检测主机初始化状态
   register: res
   script: "check.sh {{basic_pkgs|join(',')}}"
   ignore_errors: true
   tags: ['check']
 
-- name: debugging
+- name: 检测结果日志
   debug: var=res.stdout_lines
+  tags: ['check']
 
-##更新初始化状态
 - name: 更新主机初始化状态
-  local_action: "shell sh {{role_path}}/files/update_status.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{inventory_hostname}} {{1 if res.stdout=='OK' else 0}}"
+  local_action: "shell sh {{role_path}}/files/update_status.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{inventory_hostname}} {{1 if res.stdout=='OK' else 0}}"
   tags: ['update_status','status']

@@ -1,81 +1,65 @@
-- name: 应用HTML路径
+- name: 应用HTML目录
   debug: var=run_path
 
-- name: 删除历史文件
+- name: 应用HTML临时目录
+  debug: var=tmp_run_path
+
+- name: 删除应用HTML临时目录
   file:
-      path: "{{ run_path }}"
+      path: "{{ tmp_run_path }}"
       state: absent
+  no_log: true
+  tags: ['install']
+
+- name: 生成应用HTML目录
+  file:
+      path: "{{ item.path }}"
+      state: directory
+      owner: "{{ item.owner }}"
+      group: "{{ item.group }}"
+      mode: "{{ item.mode }}"
+  with_items:
+      - { path: '{{ run_path }}', owner: 'winning', group: 'winning', mode: '0755' }
+      - { path: '{{ tmp_run_path }}', owner: 'winning', group: 'winning', mode: '0755' }
   become: yes
   tags: ['install']
 
-# ensure install path exists and ensure the derectory mode 0755
-- name: 生成文件夹
+- name: 生成应用HTML目录
   file:
-      path: "{{ run_path }}"
+      path: "{{ item.path }}"
       state: directory
-      mode: 0755
+      owner: "{{ item.owner }}"
+      group: "{{ item.group }}"
+      mode: "{{ item.mode }}"
+  with_items:
+      - { path: '{{ web_info.rootRunFolder }}', owner: 'winning', group: 'winning', mode: '0755' }
+  become: yes
+  when: web_info.rootRunFolder is defined
   tags: ['install']
 
-#- name: wirte nginx config to dest
-#  template:
-#    src: "{{ item.src }}"
-#    dest: "{{ item.dest }}"
-#    mode: 0755
-#  with_items:
-#    - { src: 'nginx.j2', dest: "/winning/winmid/nginx/conf/default.d/{{ repository_name }}.conf" }
-
-- name: 远程安装包下载
-  uri:
-      url: "{{ package_path }}"
-      dest: "{{ deploy_path }}"
-  when: install_type == "remote"
-  tags: ['install']
-
-- name: 安装包解压
-  unarchive:
-      src: "{{ deploy_path }}/{{ package_name }}"
-      dest: "{{ deploy_path }}"
-      remote_src: yes
-  when: install_type == "remote"
-  tags: ['install']
-
-- name: 删除下载的安装包
+- name: 删除子模块HTML目录
   file:
-      path: "{{ deploy_path }}/{{ package_name }}"
+      path: "{{ item }}"
       state: absent
-      force: true
-  when: install_type == "remote"
+  with_items: "{{web_info.subModulePaths}}"
   tags: ['install']
-
-- name: 本地部署方式，部署包解压到部署文件夹下
-  unarchive:
-      src: "{{package_path}}"
-      dest: "{{ deploy_path }}"
-  when: install_type == 'local'
-  tags: ['install']
-
-#- name: svn部署方式，从svn仓库拉取到部署文件夹下
-#  subversion:
-#      repo: "{{ web_info.svnPath }}"
-#      dest: "{{ deploy_path }}"
-#      username: "{{ web_info.svnUsername }}"
-#      password: "{{ web_info.svnPass }}"
-#      in_place: "yes"
-#      force: "yes"
-#  environment:
-#      LC_ALL: "zh_CN.UTF-8"
-#  when: install_type == 'svn'
-#  tags: ['install']
 
 - name: svn部署方式，从svn仓库拉取到部署文件夹下
-  shell: "svn checkout  {{web_info.svnPath }} {{ deploy_path }} --username {{web_info.svnUsername}} --password {{web_info.svnPass}} --non-interactive --trust-server-cert --no-auth-cache --force  warn=False"
+  shell: "svn checkout  {{web_info.svnPath }} {{ tmp_run_path }} --username {{web_info.svnUsername}} --password {{web_info.svnPass}} --non-interactive --trust-server-cert --no-auth-cache --force  warn=False"
   register: shell_out
   when: install_type == 'svn'
   tags: ['install']
 - debug: var=shell_out.stderr_lines
 
-- name: 清空default.d目录配置
-  shell: 'rm -rf /winning/winmid/nginx/conf/default.d/*.conf'
+- name: 拷贝HTML文件到HTML目录
+  shell: 'cp -R {{ tmp_run_path }}/* {{ web_info.rootRunFolder }}/'
+  register: shell_out
+  when: web_info.rootRunFolder is defined
+  tags: ['install']
+
+- name: 移动HTML文件到指定目录
+  shell: 'mv {{ tmp_run_path }}/* {{ run_path }}/'
+  register: shell_out
   tags: ['install']
 
 - name: 前端nginx配置部署
@@ -108,6 +92,7 @@
       group: winning
       mode: 0755
   with_items: "{{web_info.upstreams}}"
+  when: web_info.upstreams is defined and (web_info.upstreams|length>0)
   no_log: true
   tags: ['install']
 
@@ -115,6 +100,7 @@
   file:
       path: "/winning/winmid/nginx/conf/vhost/https.conf"
       state: absent
+  when: web_info.nginxFrontBacks is defined and (web_info.nginxFrontBacks|length>0)
   tags: ['install']
 
 - name: 创建http.conf文件
@@ -124,6 +110,7 @@
       owner: winning
       group: winning
       mode: 0755
+  when: web_info.nginxFrontBacks is defined and (web_info.nginxFrontBacks|length>0)
   tags: ['install']
 
 - name: 端口监控配置部署
@@ -131,14 +118,11 @@
       line: "{{ item.confstr }}"
       dest: /winning/winmid/nginx/conf/vhost/https.conf
   with_items: "{{web_info.nginxFrontBacks}}"
+  when: web_info.nginxFrontBacks is defined and (web_info.nginxFrontBacks|length>0)
   no_log: true
   tags: ['install']
 
-#- name: restart nginx
-#  service: name=nginx state=restarted
-#  tags: ['install']
 - name: nginx服务重启
-  shell: 'sudo systemctl restart nginx;'
+  shell: 'systemctl restart nginx'
+  become: yes
   tags: ['install']
-
-

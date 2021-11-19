@@ -5,6 +5,8 @@ deploy_path: "{{web_info.deployAddr}}"
 #运行路径
 run_path: "{{web_info.runFolder}}"
 
+tmp_run_path: "/tmp{{web_info.runFolder}}"
+
 #默认本地安装包部署
 install_type: "{{web_info.deployType}}"
 

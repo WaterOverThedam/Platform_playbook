@@ -1,5 +1,5 @@
 ---
-- name: changing winning password
+- name: 检测主机是否已初始化
   hosts: 'all:!cloudhost:!ops*'
   gather_facts: false
   vars_files:

@@ -37,24 +37,14 @@
   with_items:
       - { src: "stop.sh", dest: "{{ deploy_path }}/stop.sh" }
       - { src: "launcher/launch-0.0.2-SNAPSHOT.jar", dest: "{{ deploy_path }}/launcher/launch-0.0.2-SNAPSHOT.jar" }
-      - { src: "configure/application.properties", dest: "{{ deploy_path }}/configure/application.properties" }
-      - { src: "configure/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
-      - { src: "configure/services.json", dest: "{{ deploy_path }}/configure/services.json" }
+      - { src: "configure/{{ app_info.hostIp }}/{{ app_info.win_port }}/application.properties", dest: "{{ deploy_path }}/configure/application.properties" }
+      - { src: "configure/{{ app_info.hostIp }}/{{ app_info.win_port }}/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
+      - { src: "configure/{{ app_info.hostIp }}/{{ app_info.win_port }}/services.json", dest: "{{ deploy_path }}/configure/services.json" }
+      - { src: "configure/{{ app_info.hostIp }}/{{ app_info.win_port }}/lui_params.json", dest: "{{ deploy_path }}/configure/lui_params.json" }
       - { src: "configure/cleanIlog.properties", dest: "{{ deploy_path }}/configure/cleanIlog.properties" }
       - { src: "configure/logback.xml", dest: "{{ deploy_path }}/configure/logback.xml" }
   tags: ['install']
 
-- name: 拷贝datasource配置文件
-  copy:
-      src: "{{ item.src }}"
-      dest: "{{ item.dest }}"
-      owner: winning
-      group: winning
-      mode: 0755
-  with_items:
-      - { src: "configure/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
-  when: app_info.repository_name == 'winex-deliver-aaio'
-  tags: ['install']
 
 - name: 生成启动脚本
   template:

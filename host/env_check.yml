@@ -28,5 +28,5 @@
   #shell: "df -h|awk '{print $NF}'|grep /winning || /bin/true"
 
 - set_fact:
-    err_msgs: "{{err_msgs + [ title + ' 没有挂载/winning分区，不能部署！！' ]}}"
+    err_msgs: "{{err_msgs + [ title + ' 没有/winning程序目录，主机不合格，不能部署！！' ]}}"
   when: "not res.stdout|regex_search('/winning')"
