@@ -22,6 +22,7 @@ main() {
       ansible-playbook -i ../../$3 stop.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"
     elif [ "$2" == "uninstall" ]; then
       echo ansible-playbook -i ../../$3 uninstall.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"
+      ansible-playbook -i ../../$3 uninstall.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"
     fi
 
     return $?

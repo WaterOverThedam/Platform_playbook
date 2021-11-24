@@ -19,19 +19,6 @@
       group: "{{ item.group }}"
       mode: "{{ item.mode }}"
   with_items:
-      - { path: '{{ run_path }}', owner: 'winning', group: 'winning', mode: '0755' }
-      - { path: '{{ tmp_run_path }}', owner: 'winning', group: 'winning', mode: '0755' }
-  become: yes
-  tags: ['install']
-
-- name: 生成应用HTML目录
-  file:
-      path: "{{ item.path }}"
-      state: directory
-      owner: "{{ item.owner }}"
-      group: "{{ item.group }}"
-      mode: "{{ item.mode }}"
-  with_items:
       - { path: '{{ web_info.rootRunFolder }}', owner: 'winning', group: 'winning', mode: '0755' }
   become: yes
   when: web_info.rootRunFolder is defined
@@ -42,6 +29,20 @@
       path: "{{ item }}"
       state: absent
   with_items: "{{web_info.subModulePaths}}"
+  when: web_info.subModulePaths is defined and (web_info.subModulePaths|length>0)
+  tags: ['install']
+
+- name: 生成应用HTML目录
+  file:
+      path: "{{ item.path }}"
+      state: directory
+      owner: "{{ item.owner }}"
+      group: "{{ item.group }}"
+      mode: "{{ item.mode }}"
+  with_items:
+      - { path: '{{ run_path }}', owner: 'winning', group: 'winning', mode: '0755' }
+      - { path: '{{ tmp_run_path }}', owner: 'winning', group: 'winning', mode: '0755' }
+  become: yes
   tags: ['install']
 
 - name: svn部署方式，从svn仓库拉取到部署文件夹下

@@ -33,3 +33,10 @@
     no_log: true,
     tags: ['install']
 }
+# aaio服务根据制品包部署
+- { include: do_aaio4pkg.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'aaiodepl4pkg',
+    no_log: true,
+    tags: [ 'install' ]
+}

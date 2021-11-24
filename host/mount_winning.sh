@@ -17,25 +17,33 @@ if [ `df -h|grep /home|wc -l` -ne 0 ]; then
 fi
 
 #1.已挂载/winning则直接退出--------------------------------------------------------------
-if [ `df -h|grep winning | wc -l` -eq 1 ]; then
+if [ `df -h|egrep '/winning$' | wc -l` -eq 1 ]; then
   echo 'winning分区已经挂载'
   exit 0
 fi
 
 #2.第二块盘存在,但不是挂载在/winning的情况处理-------------------------------------------------
-disk_b=$(lsblk|awk '/db/ {print $1}')
+disk_b=$(lsblk|awk '/db/ {print $1}'|head -1)
 if [ -n "$disk_b" ];
 then
-mount_point=$(lsblk |grep $disk_b -A 1 |grep '└─'|awk '{print $NF}')
-dev=$(lsblk |grep $disk_b -A 1 |grep '└─'|awk '{print gensub("└─","/dev/mapper/","g",$1)}')
+mount_point=$(lsblk -o name,type,mountpoint|grep $disk_b -A 2 |grep 'lvm'|awk '{print $NF}'|grep -v lvm)
+dev=$(lsblk |grep $disk_b -A 2|grep lvm |grep '└─'|awk '{print gensub("└─","/dev/mapper/","g",$1)}')
 [ -n "$dev" -a "$mount_point" != "/winning" ] && {
-   [[ $mount_point =~ '/' ]] && umount $dev 
-   sed "/\\$mount_point/d" /etc/fstab -i 
-   [ ! -d /winning ] && mkdir /winning 
-   grep '/winning' /etc/fstab || echo "$dev /winning xfs defaults 0 0" >> /etc/fstab 
-   mount -a 
-   df -h|grep winning && echo 'winning分区挂载成功'
-   exit 0
+   [[ "$mount_point" =~ '/' ]] && {
+     umount $dev
+     sed "/\\$mount_point/d" /etc/fstab -i
+   }
+   [ ! -d /winning ] && mkdir /winning
+   mkfs.xfs $dev > /dev/null
+   grep '/winning' /etc/fstab || echo "$dev /winning xfs defaults 0 0" >> /etc/fstab
+   mount -a
+   if [ `df -h|egrep '/winning$' | wc -l` -eq 1 ]; then
+      echo 'winning分区挂载成功'
+      exit 0
+   else
+      echo 'winning分区挂载失败'
+      exit 1
+   fi
 }
 fi
 
@@ -70,7 +78,7 @@ then
    grep '/winning' /etc/fstab || echo  '/dev/win_vg/win_lv /winning xfs defaults 0 0' >> /etc/fstab
    mount -a
  }
- if [ `df -h|grep winning | wc -l` -eq 1 ]; then
+ if [ `df -h|egrep '/winning$' | wc -l` -eq 1 ]; then
    echo 'winning分区挂载成功'
  fi
 

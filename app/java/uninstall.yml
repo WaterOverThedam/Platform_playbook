@@ -1,6 +1,6 @@
 ---
 - name: 卸载后端应用
-  hosts: app
+  hosts: all
   gather_facts: False
   vars_files:
       - "{{vars_file_name}}"

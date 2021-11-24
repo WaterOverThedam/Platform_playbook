@@ -31,9 +31,9 @@
 - debug: var=app_console_out.stdout
 
 - name: 打印AAIO应用20行日志
-  shell: 'tail -20 {{ log_path }}/console.log'
+  shell: 'tail -20 {{ deploy_path }}/ms_logs/ms_all.log'
   register: app_console_out
-  when: app_info.deploy_type == 'aaiodepl'
+  when: app_info.deploy_type == 'aaiodepl' or app_info.deploy_type == 'aaiodepl4pkg'
   ignore_errors: true
   tags: ['install']
 - debug: var=app_console_out.stdout

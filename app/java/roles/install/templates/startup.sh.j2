@@ -42,9 +42,11 @@ nohup java {{ app_info.java_opts_def }} {{ app_info.mem_opts }} \
  -Dcom.sun.management.jmxremote.authenticate=false\
  -Dcom.sun.management.jmxremote.ssl=false\
  -Ddatabase.show.sql=false\
+ -Dcop.host.ip={{ app_info.cop_host_ip }}\
+ -Dinstance.serial={{ app_info.instance_serial }}\
  -classpath {{ deploy_path }}/launcher/launch-0.0.1-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime "$@" &
 
-{% elif app_info.deploy_type == 'aaiodepl'  %}
+{% elif app_info.deploy_type == 'aaiodepl' or app_info.deploy_type == 'aaiodepl4pkg' %}
 
 export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:HeapDumpPath={{ deploy_path }}/ms_logs/heapdump-%p.hprof "
 export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ deploy_path }}/ms_logs/hs_err_pid<pid>.log "
@@ -60,6 +62,8 @@ nohup java {{ app_info.java_opts_def }} {{ app_info.mem_opts }} \
  -Dcom.sun.management.jmxremote.authenticate=false\
  -Dcom.sun.management.jmxremote.ssl=false\
  -Ddatabase.show.sql=false\
+ -Dcop.host.ip={{ app_info.cop_host_ip }}\
+ -Dinstance.serial={{ app_info.instance_serial }}\
  -classpath {{ deploy_path }}/launcher/launch-0.0.2-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime "$@" &
 
 {% else %}

@@ -1,7 +1,37 @@
-# 多个应用服务一起操作
-- { include: do.yml,
-    loop: '{{ app_infos }}',
+- { include: do.yml, loop: '{{ app_infos }}',
     loop_control: { loop_var: app_info },
-    when: app_info.hostIp == ansible_ssh_host,
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'ansidepl',
+    no_log: true,
     tags: ['start', 'restart']
-  }
+}
+- { include: do.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'littledepl',
+    no_log: true,
+    ags: ['install']
+}
+- { include: do.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'wdshisdepl',
+    no_log: true,
+    tags: ['start', 'restart']
+}
+- { include: do.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'tmtsdepl',
+    no_log: true,
+    tags: ['start', 'restart']
+}
+- { include: do_aaio.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'aaiodepl',
+    no_log: true,
+    tags: ['start', 'restart']
+}
+- { include: do_aaio.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'aaiodepl4pkg',
+    no_log: true,
+    tags: ['start', 'restart']
+}
+
