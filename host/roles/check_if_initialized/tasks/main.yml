@@ -8,5 +8,6 @@
   tags: ['check']
 
 - name: 更新主机初始化状态
-  local_action: "shell sh {{role_path}}/files/update_status.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{inventory_hostname}} {{1 if res.stdout=='OK' else 0}}"
+  local_action: "shell sh {{role_path}}/files/update_status.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{inventory_hostname}} 1"
+  when: force=="yes"
   tags: ['update_status','status']

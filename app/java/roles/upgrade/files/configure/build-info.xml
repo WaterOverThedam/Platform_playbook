@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<buildMetadata>
+    <branch>develop</branch>
+    <channel>base</channel>
+    <baseVersion>0.1.0</baseVersion>
+    <buildTime>1546593959</buildTime>
+    <buildNumber>31505</buildNumber>
+    <fullVersion>0.1.0-develop-31505-1800</fullVersion>
+    <versionString>0.1.0(develop+31505+1800)</versionString>
+    <baseVersionDate>2020-09-17</baseVersionDate>
+</buildMetadata>

@@ -5,6 +5,7 @@
   file:
       path: "{{ deploy_path }}"
       state: absent
+  become: yes
   tags: ['install']
 
 - name: 创建应用部署目录

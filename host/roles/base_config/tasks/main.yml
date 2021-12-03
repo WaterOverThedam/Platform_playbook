@@ -55,7 +55,7 @@
     - { src: 'bashrc_root.j2',          dest: '~/.bashrc',                      own: root }
     - { src: 'bashrc_winning.j2',       dest: '/home/winning/.bashrc',          own: winning }
     - { src: 'bashrc_winsupt.j2',       dest: '/home/winsupport/.bashrc',       own: winsupport }
-    - { src: 'sudoers.j2',              dest: '/etc/sudoers',                   own: root }
+  #  - { src: 'sudoers.j2',              dest: '/etc/sudoers',                   own: root }
     - { src: 'winning.repo.j2',         dest: '/etc/yum.repos.d/winning.repo',  own: root }
   tags: confbash
 

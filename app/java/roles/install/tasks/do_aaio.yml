@@ -5,6 +5,7 @@
   file:
       path: "{{ deploy_path }}"
       state: absent
+  become: yes
   tags: ['install']
 
 - name: 创建应用部署目录
@@ -45,6 +46,33 @@
       - { src: "configure/logback.xml", dest: "{{ deploy_path }}/configure/logback.xml" }
   tags: ['install']
 
+- name: 拷贝skywalking-agent安装包
+  copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "{{ app_info.skywalking_zip }}", dest: "{{ deploy_path }}/{{ app_info.skywalking_zip }}" }
+  when: app_info.skywalking_zip is defined and app_info.skywalking_opts is defined
+  tags: ['install']
+
+- name: skywalking-agent安装包解压
+  unarchive:
+      src: "{{ deploy_path }}/{{ app_info.skywalking_zip }}"
+      dest: "{{ deploy_path }}"
+      remote_src: yes
+  when: app_info.skywalking_zip is defined and app_info.skywalking_opts is defined
+  tags: ['install']
+
+- name: 删除skywalking-agent安装包
+  file:
+      path: "{{ deploy_path }}/{{ app_info.skywalking_zip }}"
+      state: absent
+      force: true
+  when: app_info.skywalking_zip is defined and app_info.skywalking_opts is defined
+  tags: ['install']
 
 - name: 生成启动脚本
   template:

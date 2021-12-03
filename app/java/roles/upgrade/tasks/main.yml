@@ -1,0 +1,42 @@
+# 多个应用服务一起部署
+- { include: do.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'ansidepl',
+    no_log: true,
+    tags: ['upgrade']
+  }
+# 小包部署，组合子模块的方式 littledepl
+- { include: do_littlepkg.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'littledepl',
+    no_log: true,
+    ags: ['upgrade']
+}
+# his服务部署
+- { include: do_wdsfhir.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'wdshisdepl',
+    no_log: true,
+    tags: ['upgrade']
+}
+# tmts服务部署
+- { include: do_tmts.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'tmtsdepl',
+    no_log: true,
+    tags: ['upgrade']
+}
+# aaio服务部署
+- { include: do_aaio.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'aaiodepl',
+    no_log: true,
+    tags: ['upgrade']
+}
+# aaio服务根据制品包部署
+- { include: do_aaio4pkg.yml, loop: '{{ app_infos }}',
+    loop_control: { loop_var: app_info },
+    when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'aaiodepl4pkg',
+    no_log: true,
+    tags: [ 'upgrade' ]
+}

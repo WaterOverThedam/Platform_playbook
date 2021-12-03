@@ -1,0 +1,9 @@
+---
+- name: 更新部署后端应用
+  hosts: all
+  gather_facts: False
+  vars_files:
+      - "{{vars_file_name}}"
+  roles:
+      - {role: upgrade, tags: ['upgrade']}
+

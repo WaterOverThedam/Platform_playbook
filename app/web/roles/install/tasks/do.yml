@@ -9,6 +9,7 @@
       path: "{{ tmp_run_path }}"
       state: absent
   no_log: true
+  become: yes
   tags: ['install']
 
 - name: 生成应用HTML目录
@@ -30,6 +31,7 @@
       state: absent
   with_items: "{{web_info.subModulePaths}}"
   when: web_info.subModulePaths is defined and (web_info.subModulePaths|length>0)
+  become: yes
   tags: ['install']
 
 - name: 生成应用HTML目录

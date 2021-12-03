@@ -1,1 +1,3 @@
-h2_db_pass: "{{h2_db_pwd}}"
+---
+
+h2_server: localhost

@@ -84,14 +84,15 @@ if ! id $login_user > /dev/null 2>&1 ; then
     /usr/sbin/useradd $login_user 2> /dev/null
 fi
 #echo "$login_user":"$login_pass" | chpasswd
-is_sudoer_config=$(cat /etc/sudoers | grep '^Cmnd_Alias SHUTDOWN')
+is_sudoer_config=$(cat /etc/sudoers | grep '^\s*Cmnd_Alias SHUTDOWN')
 if [ -z "$is_sudoer_config" ]; then
-    chmod +w /etc/sudoers
-    echo '
-    Cmnd_Alias SHUTDOWN=/usr/sbin/shutdown,/usr/sbin/reboot,/usr/sbin/halt,/usr/sbin/poweroff,/usr/sbin/init
-    winning ALL=(ALL) NOPASSWD:ALL ,!SHUTDOWN
-    winsupport ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-    chmod -w /etc/sudoers
+chmod +w /etc/sudoers
+echo '
+Cmnd_Alias SHUTDOWN=/usr/sbin/shutdown,/usr/sbin/reboot,/usr/sbin/halt,/usr/sbin/poweroff,/usr/sbin/init
+winning ALL=(ALL) NOPASSWD:ALL ,!SHUTDOWN
+winsupport ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+chmod 0440 /etc/sudoers
+visudo -c
 fi
 }
 

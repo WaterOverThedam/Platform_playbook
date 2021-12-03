@@ -113,7 +113,7 @@
 - name: get h2 param
   #与host下的脚本相同，直接调用
   set_fact:
-    soid: "{{ lookup('pipe','sh {{role_path}}/../../../host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{soid_sql}}') }}"
+    soid: "{{ lookup('pipe','sh {{role_path}}/../../../host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{soid_sql}}') }}"
   failed_when: soid == ''
 
 

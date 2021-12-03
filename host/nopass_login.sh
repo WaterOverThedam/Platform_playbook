@@ -4,6 +4,6 @@ else
   file="/root/.ssh/id_rsa.pub"
 fi
 
-ansible 'all' -i hosts2 -m authorized_key -a "user=root key=\"{{ lookup('file',\"$file\")}}\"" --ask-vault-pass
+ansible-playbook  -i hosts2  nopass_login.yml -e "key_file=$file" --ask-vault-pass
 
 

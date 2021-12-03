@@ -10,8 +10,8 @@
 
 - name: get h2 json value of datasource scripts
   set_fact:
-    script1: "{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_match_str_sql}}"
-    script2: "{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_replacements_sql}}"
+    script1: "{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{get_match_str_sql}}"
+    script2: "{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{get_replacements_sql}}"
   tags: ['multi_exec']
 
 - name: get h2 json value of datasource
@@ -58,8 +58,8 @@
 
 - name: get h2 value of ID AND replace
   set_fact:
-    match_str: "{{lookup('pipe','{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_match_id_sql}}')}}"
-    replacements: "{{lookup('pipe','{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_replacements_id_sql}}')}}"
+    match_str: "{{lookup('pipe','{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{get_match_id_sql}}')}}"
+    replacements: "{{lookup('pipe','{{inventory_dir}}/host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{get_replacements_id_sql}}')}}"
   failed_when: match_res|default('',true) == '' or rep_res|default('',true) == ''
   tags: ['multi_exec']
 - {include: file_and_h2_replace.yml, sql_update_column: 'MIDLIST', tags: ['multi_user']}

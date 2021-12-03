@@ -1,7 +1,7 @@
 # 运维平台数据库名，默认为:winning
 h2_db_url: "{{ops}}//root/winning_source/h2/data/winning"
 h2_db_user: "admin"
-h2_db_pass: "11"
+h2_db_pwd: "11"
 ops_addr: '{{local_ip.stdout}}'
 app_path: 
   app: /winning/app

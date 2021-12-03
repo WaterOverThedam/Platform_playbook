@@ -20,13 +20,15 @@
   set_fact:
     backend_resources: "{{params.backend_resources|list}}"
 
+#处理没有组名，只有主机名的情况
 - name: "set frontend_resources variables"
   set_fact:
     frontend_resources: "{{params.frontend_resources|list}}"
+    cur_grp: "{{groups[group_name|default('all',true)]|default(groups['all'])}}"
 
 - name: get front master
   set_fact:
-    app_master: "{{groups[group_name|default('all',true)]|select('search','app.*1')|list}}"
+    app_master: "{{cur_grp|select('search','app.*1')|list}}"
   tags: ['front']
 - name: get front master ip
   set_fact:

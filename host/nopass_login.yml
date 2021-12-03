@@ -1,0 +1,10 @@
+---
+- name: 设置root免密登陆
+  hosts: 'all'
+  gather_facts: False
+  vars:
+    ansible_become_pass: '{{ ansible_ssh_pass }}'
+  tasks:
+    - name: create ssh authorized_key for winning user
+      become: yes
+      authorized_key: user=root key='{{lookup("file", "{{key_file}}")}}'

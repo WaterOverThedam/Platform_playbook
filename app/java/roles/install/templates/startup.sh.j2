@@ -64,7 +64,10 @@ nohup java {{ app_info.java_opts_def }} {{ app_info.mem_opts }} \
  -Ddatabase.show.sql=false\
  -Dcop.host.ip={{ app_info.cop_host_ip }}\
  -Dinstance.serial={{ app_info.instance_serial }}\
- -classpath {{ deploy_path }}/launcher/launch-0.0.2-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime "$@" &
+ {% if app_info.skywalking_opts is defined and (app_info.skywalking_opts|length>0)  %}
+ {{ app_info.skywalking_opts }}\
+ {% endif%}
+ -classpath {{ deploy_path }}/launcher/launch-0.0.2-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime  "$@" &
 
 {% else %}
 ## 其他部署模式

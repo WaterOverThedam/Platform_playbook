@@ -1,4 +1,6 @@
 ---
+- name: 'make sure thhe permission of /winning'
+  file: 'dest=/winning mode=0755 owner=winning group=winning'
 - name: mkdir winning directory
   file:
       path: "{{ item.path }}"
@@ -195,7 +197,7 @@
   tags: ['switch']
 ##如查使用不同主机不同随机密码策略，此任务不执行  
 - name: HOSTS switch login user to winning
-  local_action: "shell sh {{role_path}}/files/change2winning.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{inventory_hostname}}"
+  local_action: "shell sh {{role_path}}/files/change2winning.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{inventory_hostname}}"
   when: ansible_winning_password == 'Win.2020'
   tags: ['switch','change_pass']
 
@@ -249,7 +251,7 @@
 
 - name: wait for server to come back
   wait_for:
-    port: 22
+    port: "{{ansible_ssh_port|default(22)}}"
     host: '{{ ansible_ssh_host|default(inventory_hostname) }}'
     search_regex: OpenSSH
     delay: 10

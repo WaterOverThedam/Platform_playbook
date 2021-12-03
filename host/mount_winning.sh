@@ -7,12 +7,12 @@ which lvm &>/dev/null || {
 }
 
 ##/home有挂载情况处理------------------------------------------------------------ 
-if [ `df -h|grep /home|wc -l` -ne 0 ]; then
+if [ `df -h|grep '/home'|wc -l` -ne 0 ]; then
     umount /home
     lvremove -y /dev/mapper/centos-home
     lvextend -l +100%FREE /dev/mapper/centos-root
     xfs_growfs /dev/mapper/centos-root
-    sed -i '/\/home /d' /etc/fstab
+    sed -i '/\/home/d' /etc/fstab
     [ ! -d /winning ] && mkdir /winning
 fi
 
@@ -34,7 +34,7 @@ dev=$(lsblk |grep $disk_b -A 2|grep lvm |grep '└─'|awk '{print gensub("└�
      sed "/\\$mount_point/d" /etc/fstab -i
    }
    [ ! -d /winning ] && mkdir /winning
-   mkfs.xfs $dev > /dev/null
+   mkfs.xfs $dev -f > /dev/null
    grep '/winning' /etc/fstab || echo "$dev /winning xfs defaults 0 0" >> /etc/fstab
    mount -a
    if [ `df -h|egrep '/winning$' | wc -l` -eq 1 ]; then
@@ -83,5 +83,13 @@ then
  fi
 
 fi
-ls -d /winning
+ls -d /winning || {
+  echo '没有winning程序目录'
+  exit 1
+}
+
+mount -a || {
+  echo '分区挂载异常'
+  exit 1
+}
 

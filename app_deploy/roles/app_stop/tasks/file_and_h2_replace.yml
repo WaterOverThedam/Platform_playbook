@@ -10,6 +10,6 @@
   tags: ['exec','file']
 
 - name: "execute sql to update h2 {{match_str}} --> {{replacements}}"
-  shell: "{{role_path}}/files/update_datasource_on_h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} '{{match_str}}' '{{replacements}}' '{{ansible_ssh_host}}' {{sql_update_column|default('XMLCONTENT',true)}}"
+  shell: "{{role_path}}/files/update_datasource_on_h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} '{{match_str}}' '{{replacements}}' '{{ansible_ssh_host}}' {{sql_update_column|default('XMLCONTENT',true)}}"
   delegate_to: localhost
   tags: ['exec','sql']

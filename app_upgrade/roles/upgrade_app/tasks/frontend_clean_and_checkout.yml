@@ -21,6 +21,6 @@
   tags: ['exec','nginx_config','{{item.app_name}}']
 
 - name: "【{{item.app_name}}】update h2 for svn revision"
-  shell: "{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{svn_update_primary if inventory_hostname=='app1' else svn_update_backup}}"
+  shell: "{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{svn_update_primary if inventory_hostname=='app1' else svn_update_backup}}"
   delegate_to: localhost
   tags: ['exec','svn_info_update']

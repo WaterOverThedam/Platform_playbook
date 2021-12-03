@@ -1,0 +1,138 @@
+- name: app deploy path
+  debug: var=deploy_path
+
+- name: 清空应用部署目录
+  file:
+      path: "{{ deploy_path }}"
+      state: absent
+  become: yes
+  tags: ['upgrade']
+
+- name: 创建应用部署目录
+  file:
+      path: "{{ item.path }}"
+      state: directory
+      owner: "{{ item.owner }}"
+      group: "{{ item.group }}"
+      mode: "{{ item.mode }}"
+  when: app_info.module_type is match 'WINNING_MS*'
+  with_items:
+      - { path: '{{ deploy_path }}', owner: 'winning', group: 'winning', mode: '0755' }
+      - { path: '{{ deploy_path }}/{{ app_info.date }}/{{ app_info.minute }}', owner: 'winning', group: 'winning', mode: '0755' }
+      - { path: '{{ log_path }}', owner: 'winning', group: 'winning', mode: '0755' }
+  tags: ['upgrade']
+
+- name: 检出应用部署文件
+  shell: "svn checkout  {{ app_svn_path }}/{{ app_info.svn_app_jar_path }} {{ deploy_path }}/{{ app_info.svn_app_jar_path }} --username {{app_info.svn_username}} --password {{app_info.svn_password}} --non-interactive --trust-server-cert --no-auth-cache --force  warn=False"
+  register: shell_out
+  when: app_info.svn_app_jar_path == 'boot'
+  tags: ['upgrade']
+
+- name: 检出应用部署文件
+  shell: "svn checkout  {{ app_svn_path }}/ {{ deploy_path }}/boot --username {{app_info.svn_username}} --password {{app_info.svn_password}} --non-interactive --trust-server-cert --no-auth-cache --force  warn=False"
+  register: shell_out
+  when: app_info.svn_app_jar_path != 'boot'
+  tags: ['upgrade']
+- debug: var=shell_out.stderr_lines
+
+- name: 移动部署文件到指定目录
+  shell: 'mv {{ deploy_path }}/boot/* {{ deploy_path }}/ ; rm -rf {{ deploy_path }}/boot'
+  register: shell_out
+  when: app_info.svn_app_jar_path != 'boot'
+  tags: ['upgrade']
+
+- name: 创建补丁目录
+  file:
+      path: "{{ item.path }}"
+      state: directory
+      owner: "{{ item.owner }}"
+      group: "{{ item.group }}"
+      mode: "{{ item.mode }}"
+  when:
+    - app_info.svn_app_jar_path == 'boot'
+  with_items:
+      - { path: '{{ deploy_path }}/boot/patch', owner: 'winning', group: 'winning', mode: '0755' }
+  tags: ['upgrade']
+
+- name: 拷贝配置文件
+  copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "stop.sh", dest: "{{ deploy_path }}/stop.sh" }
+      - { src: "{{ app_info.application_file_name }}_{{ app_info.win_appid }}", dest: "{{ deploy_path }}/{{ app_info.application_file_name }}" }
+  when: app_info.module_type is match 'WINNING_MS*'
+  ignore_errors: true
+  tags: ['upgrade']
+
+- name: 备份配置文件
+  shell: "cp {{ app_info.application_file_name }} {{ app_info.date }}/{{ app_info.minute }} "
+  args:
+      chdir: "{{ deploy_path }}"
+  when: app_info.module_type is match 'WINNING_MS*'
+  ignore_errors: true
+  tags: ['upgrade']
+
+- name: 拷贝启动Jar包
+  copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "launcher-1.3-SNAPSHOT.jar", dest: "{{ deploy_path }}/launcher-1.3-SNAPSHOT.jar" }
+  when: app_info.svn_app_jar_path == 'boot'
+  tags: ['upgrade']
+
+- name: 生成启动脚本
+  template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "startup.sh.j2", dest: "{{ deploy_path }}/startup.sh" }
+      - { src: "run.sh.j2", dest: "{{ deploy_path }}/run.sh" }
+  tags: ['upgrade']
+
+- name: 停止服务
+  shell: './stop.sh'
+  args:
+      chdir: "{{ deploy_path }}"
+  register: stop_out
+  tags: ['upgrade']
+- debug: var=stop_out.stdout
+
+- name: 启动服务
+  shell: './startup.sh'
+  args:
+      chdir: "{{ deploy_path }}"
+  tags: ['upgrade']
+
+- name: 等待3秒
+  pause: seconds=3
+  tags: ['upgrade']
+
+- name: 查看日志
+  shell: 'tail -20 {{ log_path }}/console.log'
+  register: app_console_out
+  when: app_info.module_type != 'WINNING_MS_WDSFHIR'
+  ignore_errors: true
+  tags: ['upgrade']
+
+- debug: var=app_console_out.stdout
+
+#- name: tail wdsfhir app console.log
+#  shell: 'tail -20 {{log_wdsfhir_path}}'
+#  register: app_console_out
+#  when: app_info.module_type == 'WINNING_MS_WDSFHIR'
+#  ignore_errors: true
+#  tags: ['upgrade']
+#
+#- debug: var=app_console_out.stdout
+

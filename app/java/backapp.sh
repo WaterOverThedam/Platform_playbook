@@ -11,6 +11,9 @@ main() {
     if [ "$2" == "install" ]; then
       echo ansible-playbook -i ../../$3 install.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"
       ansible-playbook -i ../../$3 install.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"
+    elif [ "$2" == "upgrade" ]; then
+      echo ansible-playbook -i ../../$3 upgrade.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"
+      ansible-playbook -i ../../$3 upgrade.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"
     elif [ "$2" == "start" ]; then
       echo ansible-playbook -i ../../$3 startup.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"
       ansible-playbook -i ../../$3 startup.yml -e "${params[*]} vars_file_name=$4" --limit "$1" -t "$2"

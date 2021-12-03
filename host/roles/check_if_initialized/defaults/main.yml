@@ -1,1 +1,6 @@
 ---
+
+h2_db_url: "localhost//root/winning_source/h2/data/winning"
+h2_db_user: "admin"
+h2_db_pwd: "11"
+force: "no"

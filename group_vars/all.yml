@@ -3,7 +3,7 @@
 # 运维平台数据库名
 h2_db_url: "localhost//root/winning_source/h2/data/winning"
 h2_db_user: "admin"
-h2_db_pass: "11"
+h2_db_pwd: "11"
 ngx_vip: "172.16.208.10"
 ansible_env_check: true
 expanded_consul: false

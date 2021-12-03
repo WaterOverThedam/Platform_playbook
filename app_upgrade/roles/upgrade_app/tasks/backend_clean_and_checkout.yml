@@ -14,6 +14,6 @@
     svn_info_update_backend: "UPDATE PUBLIC.MISMGR_NODEMANAGE SET PATCHVERSION=\\'{{revision}}/{{item.1.cloud_revision}}\\' WHERE NODEIP=\\'{{ansible_ssh_host}}\\' and APPID=\\'{{item.1.appid}}\\'"
   tags: ['exec','svn','svn_update_sql','{{item.1.appid}}','{{item.0|int+1}}']
 - name: "【{{item.0|int+1}}-{{item.1.app_name}}】update h2 for svn revision {{revision}}/{{item.1.cloud_revision}}"
-  shell: "{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{svn_info_update_backend}}"
+  shell: "{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{svn_info_update_backend}}"
   delegate_to: localhost
   tags: ['exec','svn_info_update','{{item.0|int+1}}','{{item.1.appid}}']

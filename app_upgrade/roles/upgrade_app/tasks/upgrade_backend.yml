@@ -39,7 +39,7 @@
   tags: ['back','config','{{item.1.appid}}','{{item.0|int+1}}']
 - name: "【{{item.0|int+1}}-{{item.1.app_name}}】get svn local revision No if not exists"
   set_fact:
-    revision: "{{ lookup('pipe','{{role_path}}/files/get_localNo_by_cloudNo.sh {{item.1.downloadUrl}} {{item.1.cloud_revision}}')|default(0,true) }}"
+    revision: "{{ lookup('pipe','{{role_path}}/files/get_localNo_by_cloudNo.sh {{item.1.downloadUrl}} {{item.1.cloud_revision}} {{h2_db_user}} {{h2_db_pwd}}')|default(0,true) }}"
   when: "item.1.revision|default('',true)=='' and item.1.cloud_revision > 0"
   tags: ['back','config','{{item.1.appid}}','{{item.0|int+1}}']
 
@@ -52,7 +52,7 @@
 
 - name: "【{{item.0|int+1}}-{{item.1.app_name}}】get deployed svn revision"
   set_fact:
-    deployed_ver: "{{ lookup('pipe','{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{svn_info_get_backend}}') }}"
+    deployed_ver: "{{ lookup('pipe','{{role_path}}/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{svn_info_get_backend}}') }}"
   tags: ['back','config','{{item.1.app_name}}']
 
 

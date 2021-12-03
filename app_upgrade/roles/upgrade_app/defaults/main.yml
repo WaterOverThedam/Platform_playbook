@@ -1,5 +1,6 @@
+---
+h2_server: localhost
 mode_change: True
-h2_db_pass: "{{h2_db_pwd}}"
 force: "yes"
 svn_update_primary: "update PUBLIC.MISMGR_WEBCLIENT set PATCHVERSION=\\'{{revision_pair}}\\' where CLIENTIP=\\'{{app_master_ip}}\\' AND PROGRAMNAME=\\'{{item.app_name}}\\'"
 svn_update_backup: "update PUBLIC.MISMGR_WEBCLIENT set PATCHVERSIONSEC=\\'{{revision_pair}}\\' where CLIENTIP=\\'{{app_master_ip}}\\' AND PROGRAMNAME=\\'{{item.app_name}}\\'"

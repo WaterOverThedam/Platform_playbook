@@ -21,11 +21,11 @@
 
 - name: get encoded pass
   register: encoded_pass
-  shell: "java -jar {{playbook_dir}}/files/getPlaintext.jar '2' '{{pass.stdout}}'"
+  shell: "java -jar {{playbook_dir}}/files/getPlaintext '2' '{{pass.stdout}}'"
   delegate_to: localhost
 
 - name: HOSTS switch login user to winning and update the pass on h2
-  local_action: "shell sh {{playbook_dir}}/roles/os_init/files/change2winning.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{item}} '{{encoded_pass.stdout}}'"
+  local_action: "shell sh {{playbook_dir}}/roles/os_init/files/change2winning.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{item}} '{{encoded_pass.stdout}}'"
   tags: ['change_pass']
 
 - name: summerize user pass

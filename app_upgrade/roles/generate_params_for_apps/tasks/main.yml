@@ -4,7 +4,7 @@
 - name: get h2 param
   #与host下的脚本相同，直接调用
   set_fact:
-    svn_url: "{{ lookup('pipe','sh {{role_path}}/../../../host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pass}} {{get_svn_sql}}') }}"
+    svn_url: "{{ lookup('pipe','sh {{role_path}}/../../../host/roles/get_parameters/files/h2.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{get_svn_sql}}') }}"
   failed_when: svn_url == ''
 - name: get svn_url
   set_fact:
@@ -12,7 +12,7 @@
   failed_when: svn_url == ''
 
 - name: get reources params to files
-  shell: "{{role_path}}/files/create_csv_params.sh {{role_path}}/files {{svn_url}}/RC/base {{ansible_ssh_host}}"
+  shell: "{{role_path}}/files/create_csv_params.sh {{role_path}}/files {{svn_url}}/RC/base {{ansible_ssh_host}} {{h2_server}}"
 
 - name: read csv for backend 
   read_csv:
