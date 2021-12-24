@@ -1,0 +1,43 @@
+
+- name: set firewall rule to block mssql port
+  script: 'block_port.cmd {{sql_port}}'
+  when: port|default('')!=''
+  tags: ['block']
+
+- name: parse detach_sql tpl
+  template:
+    src: "detach_db_by_force.sql.j2"
+    dest: "{{ root_path }}{{path_separator}}WiNEX{{path_separator}}scripts/detach_db_by_force.sql"
+  tags: ['detach','sql']
+- name: detach db
+  win_command: "sqlScript.cmd detach_db_by_force.sql"
+  register: result
+  args:
+    chdir: "{{ root_path }}{{path_separator}}WiNEX{{path_separator}}scripts"
+  tags: ['detach','execute']
+
+- name: move db files
+  win_command: "{{item}}"
+  ignore_errors: true
+  loop:
+    - "mkdir tmp"
+    - "mv {{db_name}}.*  tmp/"
+  args:
+    chdir: "{{data_dir}}"
+  tags: ['detach','move']
+
+- name: clean detached db files in tmp
+  win_command: "rmdir /s/q tmp"
+  register: result
+  args:
+    chdir: "{{ data_dir }}"
+  when: "force=='yes'"
+  tags: ['detach','move']
+
+- name: set firewall rule to allow mssql port
+  win_command: '{{item}}'
+  loop:
+    - 'netsh advfirewall firewall del rule name="SQLSERVER_WIN60"'
+    - 'netsh advfirewall firewall add rule name="SQLSERVER_WIN60" dir=in protocol=tcp localport={{sql_port}} action=allow'
+  when: port|default('')!=''
+  tags: ['allow']

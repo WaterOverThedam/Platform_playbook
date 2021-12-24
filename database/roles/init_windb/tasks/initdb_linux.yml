@@ -1,0 +1,53 @@
+- name: create restore relevent path
+  file:
+    path: "{{item}}"
+    state: directory
+    group: "{{mssql_user}}"
+    owner: "{{mssql_user}}"
+    recurse: yes
+  loop:
+    - "{{bak_path}}{{path_separator}}scripts"
+    - "{{data_dir}}{{path_separator}}Backup"
+  tags: ['path','prepare']
+
+- name: cop bakfile to dbserver
+  copy:
+    src: "{{bakfile.stdout}}"
+    dest: "{{bak_path}}{{path_separator}}{{bakfile_name}}"
+  tags: ['bakfile']
+- name: unzip bakfile to dbserver
+  unarchive:
+    remote_src: "yes"
+    src: "{{bak_path}}{{path_separator}}{{bakfile_name}}"
+    dest: "{{bak_path}}"
+  when: bakfile_name|regex_search('zip$')
+  tags: ['bakfile']
+
+- name: reset bakfile name
+  set_fact:
+    bakfile_name: '{{bakfile_name|replace(".zip","")}}'
+  run_once: true
+  delegate_to: localhost
+  tags: ['bakfile']
+
+
+- name: "生成sql连接脚本sqlScript.sh"
+  template:
+    src: "{{item.src}}"
+    dest: "{{ root_path }}{{path_separator}}WiNEX{{path_separator}}scripts{{path_separator}}{{item.dest}}"
+  loop:
+    - {src: sqlScript_WINDBA.cmd.j2, dest: sqlScript_WINDBA.sh}
+    - {src: sqlScript.cmd.j2, dest: sqlScript.sh}
+  tags: ['script','sql']
+
+- name: "load sql scripts"
+  include_tasks: execute_sql_linux.yml
+  with_indexed_items: "{{sql_tasks}}"
+  tags: ['sql']
+ 
+- name: 确保sqlserver代理服务已启动
+  become: yes
+  shell: |
+    /opt/mssql/bin/mssql-conf set sqlagent.enabled true &&  systemctl restart mssql-server
+  tags: ['agent']
+    

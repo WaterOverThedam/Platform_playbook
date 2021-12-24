@@ -5,3 +5,4 @@ h2_db_url: "{{h2_server}}//root/winning_source/h2/data/winning"
 h2_db_user: "admin"
 h2_db_pwd: "11"
 ops_addr: '{{local_ip.stdout}}'
+allowed_users: ['winsupport','winning','root']

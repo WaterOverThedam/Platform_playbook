@@ -1,0 +1,1 @@
+sqlcmd -S {{ host }}{% if instance|default('')!='' %}\\{{ instance }} {% elif sql_port|default('')!='' %},{{sql_port}}{% endif %} -d master {% if sql_user|default('')!='' %} -U {{ sql_user }} -P {{ sql_pass }}{% endif %} -i {% if is_windows=='yes' %}{% raw %}%1{% endraw %}{% else %}{% raw %}$1{% endraw %}{% endif %}

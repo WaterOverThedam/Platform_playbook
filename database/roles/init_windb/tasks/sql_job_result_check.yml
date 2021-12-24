@@ -1,0 +1,6 @@
+# - debug: var=job_id
+# - debug: var=result
+- name: "检查数据库WIN60库是否还原成功；失败，则中止任务"
+  fail:
+    msg: "数据库还原失败！"
+  when: 'job_id|int==1 and not result.stdout|regex_search("RESTORE DATABASE 成功")'

@@ -38,6 +38,11 @@
     host_all: "{{host_all + extra_ips.split(',')}}"
   when: extra_ips is defined
 
+- name: append current user to allowed_users list
+  set_fact:
+    allowed_users: "{{allowed_users + [ansible_ssh_user]}}"
+  when: "ansible_ssh_user not in allowed_users"
+  
 - name: get ip span
   register: ip_span
   shell: "IP={{ansible_ssh_host}}; echo ${IP%.*}.0/0"

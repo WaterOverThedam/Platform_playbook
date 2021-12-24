@@ -21,7 +21,7 @@
 
 - name: get encoded pass
   register: encoded_pass
-  shell: "java -jar {{playbook_dir}}/files/getPlaintext '2' '{{pass.stdout}}'"
+  shell: "java -jar {{inventory_dir}}/files/getPlaintext '2' '{{pass.stdout}}'"
   delegate_to: localhost
 
 - name: HOSTS switch login user to winning and update the pass on h2

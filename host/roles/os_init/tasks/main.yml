@@ -55,7 +55,7 @@
     weekday: "0"
     minute: "45"
     hour: "2"
-    job: "find /winning/rsyslog/  -mtime +14 -delete"
+    job: "find /winning/rsyslog/  -mtime +7|xargs rm -rf"
     state: present
   delegate_to: localhost
   run_once: True

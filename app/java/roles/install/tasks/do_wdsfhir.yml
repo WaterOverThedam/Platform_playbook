@@ -41,18 +41,6 @@
   when: app_info.svn_app_jar_path != 'boot'
   tags: ['install']
 
-#- name: 创建补丁目录
-#  file:
-#      path: "{{ item.path }}"
-#      state: directory
-#      owner: "{{ item.owner }}"
-#      group: "{{ item.group }}"
-#      mode: "{{ item.mode }}"
-#  when:
-#    - app_info.svn_app_jar_path == 'boot'
-#  with_items:
-#      - { path: '{{ deploy_path }}/boot/patch', owner: 'winning', group: 'winning', mode: '0755' }
-#  tags: ['install']
 
 - name: 拷贝配置文件
   copy:
@@ -76,17 +64,6 @@
   ignore_errors: true
   tags: ['install']
 
-#- name: 拷贝启动Jar包
-#  copy:
-#      src: "{{ item.src }}"
-#      dest: "{{ item.dest }}"
-#      owner: winning
-#      group: winning
-#      mode: 0755
-#  with_items:
-#      - { src: "launcher-1.3-SNAPSHOT.jar", dest: "{{ deploy_path }}/launcher-1.3-SNAPSHOT.jar" }
-#  when: app_info.svn_app_jar_path == 'boot'
-#  tags: ['install']
 
 - name: 生成启动脚本
   template:
@@ -96,7 +73,9 @@
       group: winning
       mode: 0755
   with_items:
+      - { src: "startupByAnsible.sh.j2", dest: "{{ deploy_path }}/startupByAnsible.sh" }
       - { src: "startup.sh.j2", dest: "{{ deploy_path }}/startup.sh" }
+      - { src: "runByAnsible.sh.j2", dest: "{{ deploy_path }}/runByAnsible.sh" }
       - { src: "run.sh.j2", dest: "{{ deploy_path }}/run.sh" }
   tags: ['install']
 
@@ -109,7 +88,7 @@
 - debug: var=stop_out.stdout
 
 - name: 启动服务
-  shell: './startup.sh'
+  shell: './startupByAnsible.sh'
   args:
       chdir: "{{ deploy_path }}"
   tags: ['install']
@@ -118,14 +97,6 @@
   pause: seconds=3
   tags: ['install']
 
-#- name: 查看日志
-#  shell: 'tail -20 {{ log_path }}/console.log'
-#  register: app_console_out
-#  when: app_info.module_type != 'WINNING_MS_WDSFHIR'
-#  ignore_errors: true
-#  tags: ['install']
-#
-#- debug: var=app_console_out.stdout
 
 - name: 查看日志
   shell: 'tail -20 {{log_wdsfhir_path}}'

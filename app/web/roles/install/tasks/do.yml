@@ -57,7 +57,7 @@
 - name: 拷贝HTML文件到HTML目录
   shell: 'cp -R {{ tmp_run_path }}/* {{ web_info.rootRunFolder }}/'
   register: shell_out
-  when: web_info.rootRunFolder is defined
+  when: web_info.rootRunFolder is defined and web_info.rootRunFolder != run_path
   tags: ['install']
 
 - name: 移动HTML文件到指定目录

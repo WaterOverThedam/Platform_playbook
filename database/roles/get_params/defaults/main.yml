@@ -1,0 +1,7 @@
+---
+is_windows: yes
+sql_port: 1433
+host: 127.0.0.1
+url: "{{ '127.0.0.1\'~instance if instance!='' else '127.0.0.1,'~port}}"
+db_name: "WIN60"
+

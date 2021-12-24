@@ -1,0 +1,14 @@
+root_path: "{% if is_windows=='yes' %}{% raw %}d:\\{% endraw %}{% else %}/winning{% endif %}"
+path_separator: "{% if is_windows=='yes' %}\\{% else %}/{% endif %}"
+mssql_user: "mssql"
+choose_task: "{% if is_windows=='yes' %}initdb_windows{% else %}initdb_linux{% endif %}.yml"
+sql_tasks:
+    - { cmd: sqlScript, sqlfile: restore_db.sql, tag: 'restore_db' }
+    - { cmd: sqlScript, sqlfile: rebuild_windba.sql, tag: 'rebuild_windba' }
+    - { cmd: sqlScript, sqlfile: init_product.sql, tag: 'init_product' }
+    - { cmd: sqlScript, sqlfile: create_monitor_account.sql, tag: 'create_monitor_account'}
+    - { cmd: sqlScript, sqlfile: index_defrag_func.sql, tag: ['index_defrag_func','index'] }
+    - { cmd: sqlScript, sqlfile: index_defrag_job.sql, tag: ['index_defrag_job','index'] }
+    - { cmd: sqlScript, sqlfile: get_agentname.sql,tag: ['agentname']}
+    - { cmd: sqlScript_WINDBA, sqlfile: check_WINDBA_Permission.sql, tag: ['check']}
+results: []

@@ -1,0 +1,6 @@
+prod1_windb1 ansible_ssh_host='172.17.0.156' ansible_ssh_port=5985 netif='ens33' ansible_ssh_user='administrator' ansible_ssh_pass='hdI82k#28j' is_windows=yes ansible_connection=winrm ansible_winrm_server_cert_validation=ignore 
+prod1_linux_windb1 ansible_ssh_host='172.16.7.219' ansible_ssh_port=22 netif='eth0' ansible_ssh_user='root' is_windows=no  sql_user=sa sql_pass='Win60.sql'
+
+[prod1]
+prod1_windb1
+prod1_linux_windb1

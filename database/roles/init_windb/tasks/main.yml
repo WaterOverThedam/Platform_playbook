@@ -1,0 +1,42 @@
+---
+
+- name: param windba_pass
+  set_fact:
+    windba_pass: "Winning@123{{param.CODE[:6]}}!{{randomStr[0:5]}}"
+  when: windba_pass|default('')=='' and randomStr is defined
+  tags: ['param','params']
+- name: set restore relevant path
+  set_fact:
+    bak_path: "{{root_path}}{{path_separator}}WiNEX"
+    data_dir: "{{root_path}}{{path_separator}}Database"
+  tags: ['param','params']
+
+- name: get bakfile path
+  register: bakfile
+  shell: "sh {{role_path}}/files/get_bakfile.sh"
+  run_once: true
+  delegate_to: localhost
+  tags: ['bakfile']
+- name: set bakfile name
+  set_fact:
+    bakfile_name: '{{bakfile.stdout.split("/")[-1]}}'
+  run_once: true
+  delegate_to: localhost
+  tags: ['bakfile']
+
+
+- name: "choose tasks depend on linux or windows OS"
+  include_tasks: "{{choose_task}}"
+  tags: ['remote','remote_task']
+
+- name: 检查WINDBA帐号是否异常
+  fail:
+    msg: "WINDBA帐号权限异常！"
+  when: "not results[7].stdout_lines[-3]|search('Permission OK')"
+- name: "检查创建索引存储是否成功"
+  fail:
+    msg: "创建索引存储失败!"
+  when: not results[4].stdout_lines[-1]|regex_search("All done!")
+
+- debug: msg="soid：{{soid}}  windba_pass：{{windba_pass}}"
+  tags: ['param']

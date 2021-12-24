@@ -1,6 +1,21 @@
 - name: app deploy path
   debug: var=deploy_path
 
+- name: 生成启动脚本
+  template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: winning
+      group: winning
+      mode: 0755
+  with_items:
+      - { src: "startupByAnsible.sh.j2", dest: "{{ deploy_path }}/startupByAnsible.sh" }
+      - { src: "startup.sh.j2", dest: "{{ deploy_path }}/startup.sh" }
+      - { src: "runByAnsible.sh.j2", dest: "{{ deploy_path }}/runByAnsible.sh" }
+      - { src: "run.sh.j2", dest: "{{ deploy_path }}/run.sh" }
+  when: app_info.generate_start_file is defined and app_info.generate_start_file == true
+  tags: ['restart', 'stop']
+
 - name: 停止服务
   shell: './stop.sh'
   args:
@@ -12,7 +27,7 @@
 - debug: var=stop_out.stdout
 
 - name: 启动服务
-  shell: './startup.sh'
+  shell: './startupByAnsible.sh'
   args:
       chdir: "{{ deploy_path }}"
   when: app_info.module_type is match 'WINNING_MS*'
@@ -28,21 +43,4 @@
   when: app_info.module_type != 'WINNING_MS_WDSFHIR' and app_info.deploy_type != 'aaiodepl'
   ignore_errors: true
   tags: ['install']
-- debug: var=app_console_out.stdout
-
-- name: 打印AAIO应用20行日志
-  shell: 'tail -20 {{ deploy_path }}/ms_logs/ms_all.log'
-  register: app_console_out
-  when: app_info.deploy_type == 'aaiodepl' or app_info.deploy_type == 'aaiodepl4pkg'
-  ignore_errors: true
-  tags: ['install']
-- debug: var=app_console_out.stdout
-
-- name: 打印HIS服务20行日志
-  shell: 'tail -20 {{log_wdsfhir_path}}'
-  register: app_console_out
-  when: app_info.module_type == 'WINNING_MS_WDSFHIR'
-  ignore_errors: true
-  tags: ['install']
-
 - debug: var=app_console_out.stdout

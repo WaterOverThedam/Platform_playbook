@@ -1,0 +1,8 @@
+---
+#sql_port: 1433
+#rdp_port: 3389
+#instance: ''
+#sql_user: ''
+#sql_pass: ''
+#root_path: 'D:\'  
+#db_name: 'WIN60'

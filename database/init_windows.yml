@@ -1,0 +1,8 @@
+---
+- name: init_windows server
+  hosts: 'all:!cloudhost:!ops*'
+  vars_files:
+    - global_vars.yml
+  roles:
+    - {role: get_params, delegate_to: localhost, when: is_windows=='yes',run_once: True, tags: ['params','param','prepare']}
+    - {role: init_windows,when: is_windows=='yes', tags: ['init_windows']}

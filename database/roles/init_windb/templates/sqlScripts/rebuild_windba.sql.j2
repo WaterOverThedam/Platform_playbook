@@ -1,0 +1,55 @@
+------[2.初始化用户和登陆名]---------------------------------------rebuild win60 acount-----------------------------------------------
+
+---创建login windba
+if not exists (select * from sys.sql_logins where name = 'WINDBA')
+   begin
+     create login WINDBA with password='{{windba_pass}}', default_database={{db_name}},check_expiration=off, check_policy=off, default_language=[Simplified Chinese]
+   end
+else
+   begin
+     alter login WINDBA with password='{{windba_pass}}', default_database={{db_name}}
+   end  
+---创建login ReadOnly
+if not exists (select * from sys.sql_logins where name = 'ReadOnly')
+   begin
+     create login ReadOnly with password='sql2K!^R', default_database={{db_name}},check_expiration=off, check_policy=off, default_language=[Simplified Chinese]
+   end
+else
+   begin
+     alter login ReadOnly with password='sql2K!^R', default_database={{db_name}}
+   end
+
+
+use {{db_name}}
+go
+if  not exists (select * from sys.database_principals where name = 'ReadOnly')
+   begin
+      CREATE USER ReadOnly FOR LOGIN ReadOnly WITH DEFAULT_SCHEMA=WINDBA
+   end
+GO
+ 
+sp_addrolemember 'db_owner','WINDBA'
+GO
+sp_addrolemember 'db_datareader','ReadOnly'
+--ALTER ROLE [db_owner] ADD MEMBER [WINDBA]
+--ALTER ROLE [db_datareader] ADD MEMBER ReadOnly
+GO
+execute sp_change_users_login 'update_one','WINDBA','WINDBA'
+execute sp_change_users_login 'update_one','ReadOnly','ReadOnly'
+go
+
+----WINDBA默认schema查表测试
+sp_configure 'show advanced options',1;
+RECONFIGURE
+go
+sp_configure   'xp_cmdshell',1
+RECONFIGURE
+go
+
+declare @check_cmd varchar(2000)='sqlcmd -S 127.0.0.1\'+cast(isnull(SERVERPROPERTY('InstanceName'),'') as varchar(50))+' -d {{db_name}} -U WINDBA -P "{{windba_pass}}" -Q "select count(*)validation from VALUE_SET"'
+print @check_cmd
+exec ('master..xp_cmdshell  '''+@check_cmd+'''')
+go
+sp_configure 'xp_cmdshell',0
+RECONFIGURE
+go

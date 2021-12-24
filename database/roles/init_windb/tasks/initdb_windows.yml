@@ -1,0 +1,49 @@
+- name: create restore relevent path
+  win_file:
+    path: "{{item}}"
+    state: directory
+    recurse: yes
+  loop:
+    - "{{bak_path}}{{path_separator}}scripts"
+    - "{{data_dir}}{{path_separator}}Backup"
+  tags: ['path','prepare']
+
+- name: cop bakfile to dbserver
+  win_copy:
+    src: "{{bakfile.stdout}}"
+    dest: "{{bak_path}}{{path_separator}}{{bakfile_name}}"
+  tags: ['bakfile']
+- name: unzip bakfile to dbserver
+  win_unzip:
+    src: "{{bak_path}}{{path_separator}}{{bakfile_name}}"
+    dest: "{{bak_path}}"
+  when: bakfile_name|regex_search('zip$')
+  tags: ['bakfile']
+
+- name: reset bakfile name
+  set_fact:
+    bakfile_name: '{{bakfile_name|replace(".zip","")}}'
+  run_once: true
+  delegate_to: localhost
+  tags: ['bakfile']
+
+ 
+- name: "生成sql连接脚本sqlScript.cmd"
+  win_template:
+    src: "{{item.src}}"
+    dest: "{{ root_path }}{{path_separator}}WiNEX{{path_separator}}scripts{{path_separator}}{{item.dest}}"
+  loop:
+    - {src: sqlScript_WINDBA.cmd.j2, dest: sqlScript_WINDBA.cmd}
+    - {src: sqlScript.cmd.j2, dest: sqlScript.cmd}
+  tags: ['script','sql']
+
+- name: "load sql scripts"
+  include_tasks: execute_sql_windows.yml
+  with_indexed_items: "{{sql_tasks}}"
+  tags: ['sql']
+
+- name: 确保sqlserver代理服务已启动
+  win_service:
+    name: "{{results[6].stdout_lines[-3]|trim}}"
+    state: started
+  tags: ['agent']

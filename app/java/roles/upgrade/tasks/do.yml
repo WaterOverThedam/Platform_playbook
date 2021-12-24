@@ -96,7 +96,9 @@
       group: winning
       mode: 0755
   with_items:
+      - { src: "startupByAnsible.sh.j2", dest: "{{ deploy_path }}/startupByAnsible.sh" }
       - { src: "startup.sh.j2", dest: "{{ deploy_path }}/startup.sh" }
+      - { src: "runByAnsible.sh.j2", dest: "{{ deploy_path }}/runByAnsible.sh" }
       - { src: "run.sh.j2", dest: "{{ deploy_path }}/run.sh" }
   tags: ['upgrade']
 
@@ -109,7 +111,7 @@
 - debug: var=stop_out.stdout
 
 - name: 启动服务
-  shell: './startup.sh'
+  shell: './startupByAnsible.sh'
   args:
       chdir: "{{ deploy_path }}"
   tags: ['upgrade']
@@ -127,12 +129,4 @@
 
 - debug: var=app_console_out.stdout
 
-#- name: tail wdsfhir app console.log
-#  shell: 'tail -20 {{log_wdsfhir_path}}'
-#  register: app_console_out
-#  when: app_info.module_type == 'WINNING_MS_WDSFHIR'
-#  ignore_errors: true
-#  tags: ['upgrade']
-#
-#- debug: var=app_console_out.stdout
 

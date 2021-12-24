@@ -1,0 +1,12 @@
+---
+
+- name: check
+  win_shell: "{{item}}"
+  register: results
+  loop:
+    - 'Get-WmiObject -Class Win32_LogicalDisk | select deviceid,@{name="size";expression={$a=$_.size/(1024*1024*1024);"{0:N2}G" -f $a}},@{name="free";expression={$a=$_.freespace/(1024*1024*1024);"{0:N2}G" -f $a}}'
+    - 'Get-WmiObject -Class Win32_PhysicalMemory| select tag,caption,@{name="capacity";expression={$a=$_.capacity/(1024*1024*1024);"{0:N1}" -f $a}}|foreach -Begin {$sum=0} -Process {$sum+=$_.capacity} -End {write-host "总内存大小: ${sum}G"}'
+    - 'Get-WmiObject -Class Win32_Processor| select @{name="CPU核数";expression={$_.NumberOfCores}}'
+
+- debug: "msg={{item.stdout_lines}}"
+  loop: "{{results.results}}"

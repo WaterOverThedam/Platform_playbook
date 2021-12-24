@@ -1,0 +1,43 @@
+
+- name: parse sql tpl
+  template:
+    src: "sqlScripts/{{item.1.sqlfile}}.j2"
+    dest: "{{ role_path }}/files/sqlScripts/{{item.1.sqlfile}}.utf8"
+  delegate_to: localhost
+  tags: "{{item.1.tag}}"
+
+- name: encode file to gbk
+  shell: "sh encode2gbk.sh"
+  args:
+    chdir: "{{ role_path }}/files"
+  delegate_to: localhost
+  tags: "{{item.1.tag}}"
+
+- name: copy sql script to remote
+  win_copy:
+    src: "sqlScripts/{{item.1.sqlfile}}"
+    dest: "{{ root_path }}{{path_separator}}WiNEX{{path_separator}}scripts{{path_separator}}{{item.1.sqlfile}}"
+  tags: "{{item.1.tag}}"
+
+- name: "{{item.0|int+1}} - execute {{item.1.sqlfile}}"
+  win_command: "{{item.1.cmd}}.cmd {{item.1.sqlfile}}"
+  register: result
+  args:
+    chdir: "{{ root_path }}{{path_separator}}WiNEX{{path_separator}}scripts"
+  tags: "{{item.1.tag}}"
+
+- debug: "msg={{result.stdout_lines[-40:]}}"
+  tags: "{{item.1.tag}}"
+
+- name: save log
+  win_copy: content="{{ result.stdout_lines }}" dest="{{root_path}}{{path_separator}}WiNEX{{path_separator}}scripts{{path_separator}}{{logname.stdout}}-{{item.0}}.log"
+  tags: "{{item.1.tag}}"
+
+- include: sql_job_result_check.yml
+  ressult: result
+  job_id: "{{item.0|int+1}}"
+  when: item.0|int == 0
+  
+- set_fact:
+    results: "{{ results + [result]}}"
+

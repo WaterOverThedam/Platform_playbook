@@ -1,0 +1,39 @@
+------[3.WIN60制品初始化]--------------------------------------------------------------------------------------
+use {{db_name}}
+go
+
+IF not EXISTS(SELECT * FROM WINDBA.ORGANIZATION WHERE ORG_ID='{{soid}}')
+
+begin
+
+declare @HOSPITAL_SOID numeric(19,0)='{{soid}}';
+
+select TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME into #COLUMNS_NEED_TO_DO  from INFORMATION_SCHEMA.COLUMNS where COLUMN_NAME in ('HOSPITAL_SOID')
+and TABLE_NAME<>'ORGANIZATION'
+
+declare @SHCEMA varchar(64),@TABLE_NAME varchar(128),@COLUMN_NAME varchar(128),@sql varchar(8000)
+declare CURSOR_HOSPITAL_SOID cursor for 
+select TABLE_SCHEMA,TABLE_NAME,COLUMN_NAME  from #COLUMNS_NEED_TO_DO
+open CURSOR_HOSPITAL_SOID
+fetch next from CURSOR_HOSPITAL_SOID into @SHCEMA,@TABLE_NAME,@COLUMN_NAME
+while(@@fetch_status = 0)
+begin
+    select @sql='UPDATE '+@SHCEMA+'.'+@TABLE_NAME+' set '+@COLUMN_NAME+' ='+ convert(varchar(128),@HOSPITAL_SOID)+' WHERE '+@COLUMN_NAME+' =11'
+	print('Table:'+@TABLE_NAME)
+	exec(@sql)
+	IF @TABLE_NAME IN('CODING_RULE_X_ORGANIZATION','USER_ORGANIZATION','EMPLOYEE_INFO')
+	begin
+	    select @sql='UPDATE '+@SHCEMA+'.'+@TABLE_NAME+' set ORG_ID ='+ convert(varchar(128),@HOSPITAL_SOID)
+	    exec(@sql)
+	end
+	fetch next from CURSOR_HOSPITAL_SOID into @SHCEMA,@TABLE_NAME,@COLUMN_NAME
+end
+close CURSOR_HOSPITAL_SOID
+deallocate CURSOR_HOSPITAL_SOID
+drop table #COLUMNS_NEED_TO_DO
+
+end
+
+update WINDBA.LOGIN_TYPE set LOGIN_TYPE_VALUE ='$2a$10$/jfotDZdKCJP7y9bGL/h/ec71UkFZPk766nYP8zTedkjGREMxHNcu' where USER_ID=4300000002
+alter database {{db_name}} set recovery full with no_wait
+select recovery_model_desc from sys.databases where name='{{db_name}}'

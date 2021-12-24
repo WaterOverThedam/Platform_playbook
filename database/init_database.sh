@@ -1,0 +1,1 @@
+ ansible-playbook -i ../hosts_db  init_db.yml   --limit "$1"

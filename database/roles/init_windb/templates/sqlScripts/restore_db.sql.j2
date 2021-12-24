@@ -1,0 +1,85 @@
+----[0.全局参数配置]-------------------------------------------------------------------------------------
+IF EXISTS (select * from tempdb.dbo.sysobjects where id = object_id(N'tempdb..#param') and type='U')
+	DROP TABLE #param;
+GO
+select
+'{{soid}}' as SOID,'{{windba_pass}}' as WINBA_PASS,'{{bak_path}}' as BAK_PATH,'{{bakfile_name}}' as BAK_FILE,'{{data_dir}}' as DATA_DIR,'WIN60' as DB_NAME,
+cast(''as varchar(2000)) check_cmd
+into #param
+select * from #param
+go
+
+-----[1.创建好目录并还原数据库]----------------------------------------------------------------------------------
+use master
+go
+
+--restore filelistonly from disk=N'D:\Database\Backup\win60_standard_v0_20210201.bak'
+declare @DB_NAME nvarchar(20)=(select top 1 DB_NAME from #param)
+declare @BAK_FILE nvarchar(100)=(select top 1 BAK_PATH+'/'+BAK_FILE from #param)
+declare @DATA_DIR varchar(100)=(select top 1 DATA_DIR from #param)
+declare @WINBA_PASS nvarchar(100)=(select top 1 WINBA_PASS from #param)
+declare @SQL_RESTORE nvarchar(1000)='restore database '+@DB_NAME+' from disk=N'''+@BAK_FILE+''' with move ''win60_baseline_v2'' to '''+@DATA_DIR+'/'+@DB_NAME+'.mdf'' ,move ''win60_baseline_v2_log'' to	'''+@DATA_DIR+'/'+@DB_NAME+'.ldf'', REPLACE,  STATS = 10'
+
+if exists (select* from sys.databases where name=@DB_NAME) 
+begin
+---exec ('ALTER DATABASE ['+@DB_NAME+'] SET SINGLE_USER WITH ROLLBACK IMMEDIATE')
+exec ('Drop DATABASE ['+@DB_NAME+']')
+---exec ('ALTER DATABASE ['+@DB_NAME+'] SET MULTI_USER WITH ROLLBACK IMMEDIATE')
+end
+
+select @SQL_RESTORE
+exec sp_executesql  @SQL_RESTORE
+GO                                                                          
+
+------------------------------------container and tunning------------------------------------------------
+/*
+EXEC sp_configure 'show advanced options', 1
+RECONFIGURE WITH OVERRIDE
+EXEC sp_configure 'contained database authentication', 1
+RECONFIGURE WITH OVERRIDE
+
+ALTER DATABASE [WIN60] SET CONTAINMENT = PARTIAL WITH NO_WAIT
+GO
+ALTER DATABASE [WIN60] SET AUTO_CREATE_STATISTICS ON(INCREMENTAL = ON)
+GO
+ALTER DATABASE [WIN60] SET AUTO_UPDATE_STATISTICS_ASYNC ON WITH NO_WAIT
+GO
+ALTER DATABASE [WIN60] SET READ_COMMITTED_SNAPSHOT ON WITH NO_WAIT
+GO
+ALTER DATABASE [WIN60] SET ALLOW_SNAPSHOT_ISOLATION ON
+GO
+---打开查询存储
+ALTER DATABASE [WIN60] SET QUERY_STORE = ON
+GO
+ALTER DATABASE [WIN60] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANUP_POLICY = (STALE_QUERY_THRESHOLD_DAYS = 7), INTERVAL_LENGTH_MINUTES = 1440, MAX_STORAGE_SIZE_MB = 16000)
+GO                                                                                         
+*/
+use [master]
+go
+--自动统计信息
+alter database WIN60 set auto_create_statistics on
+alter database WIN60 set auto_update_statistics on with no_wait
+alter database WIN60 set auto_update_statistics_async on with no_wait
+go
+
+--修改兼容级别
+declare @sql varchar(100)
+select @sql = 'alter database [WIN60] set compatibility_level = ' +  cast(compatibility_level as varchar(3)) from sys.databases where name = 'master'
+exec (@sql)
+
+--启用查询存储
+if (select compatibility_level from sys.databases where name = 'master') >= 130
+   alter database WIN60 
+     set query_store = on (operation_mode          = read_write, 
+                           max_storage_size_mb     = 1024, 
+                           interval_length_minutes = 30, 
+                           query_capture_mode      = auto);
+
+go
+ 
+--启用已提交读隔离
+alter database WIN60 set read_committed_snapshot on with rollback immediate
+--启用备份压缩
+exec sp_configure 'backup compression default',1
+go
+reconfigure with override

@@ -1,0 +1,6 @@
+---
+sql_port: 1433
+rdp_port: 3389
+root_path: "d:\\"
+path_separator: "\\"
+bak_path: "{{root_path}}{{path_separator}}WiNEX"

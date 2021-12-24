@@ -1,0 +1,10 @@
+---
+- name: restore and init win60db
+  hosts: 'all:!cloudhost:!ops*'
+  vars_files:
+    - global_vars.yml
+  vars:
+    randomStr: "{{ lookup('password', '/dev/null length=5 chars=ascii_letters') }}"
+  roles:
+    - {role: get_params, delegate_to: localhost, run_once: True, tags: ['params','param','prepare']}
+    - {role: init_windb, tags: ['init_windb']}

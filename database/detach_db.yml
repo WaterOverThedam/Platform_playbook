@@ -1,0 +1,8 @@
+---
+- name: detach or remove db
+  hosts: 'all:!cloudhost:!ops*'
+  vars_files:
+    - global_vars.yml
+  roles:
+    - {role: get_params, delegate_to: localhost, run_once: True, tags: ['params','param','prepare']}
+    - {role: detach_db, tags: ['detach_windb']}

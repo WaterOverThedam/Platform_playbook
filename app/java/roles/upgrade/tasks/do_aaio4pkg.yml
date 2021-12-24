@@ -8,19 +8,6 @@
   become: yes
   tags: ['upgrade']
 
-#- name: 创建应用部署目录
-#  file:
-#      path: "{{ item.path }}"
-#      state: directory
-#      owner: "{{ item.owner }}"
-#      group: "{{ item.group }}"
-#      mode: "{{ item.mode }}"
-#  with_items:
-#      - { path: '{{ deploy_path }}', owner: 'winning', group: 'winning', mode: '0755' }
-#      - { path: '{{ deploy_path }}/launcher', owner: 'winning', group: 'winning', mode: '0755' }
-#      - { path: '{{ deploy_path }}/configure', owner: 'winning', group: 'winning', mode: '0755' }
-#  tags: ['upgrade']
-
 
 - name: 远程安装包下载
   uri:
@@ -43,36 +30,6 @@
   tags: ['upgrade']
 
 
-#- name: 拷贝脚本和配置文件
-#  copy:
-#      src: "{{ item.src }}"
-#      dest: "{{ item.dest }}"
-#      owner: winning
-#      group: winning
-#      mode: 0755
-#  with_items:
-#      - { src: "stop.sh", dest: "{{ deploy_path }}/stop.sh" }
-#      - { src: "launcher/launch-0.0.2-SNAPSHOT.jar", dest: "{{ deploy_path }}/launcher/launch-0.0.2-SNAPSHOT.jar" }
-#      - { src: "configure/{{ app_info.hostIp }}/{{ app_info.win_port }}/application.properties", dest: "{{ deploy_path }}/configure/application.properties" }
-#      - { src: "configure/{{ app_info.hostIp }}/{{ app_info.win_port }}/datasource.json", dest: "{{ deploy_path }}/configure/datasource.json" }
-#      - { src: "configure/{{ app_info.hostIp }}/{{ app_info.win_port }}/services.json", dest: "{{ deploy_path }}/configure/services.json" }
-#      - { src: "configure/{{ app_info.hostIp }}/{{ app_info.win_port }}/lui_params.json", dest: "{{ deploy_path }}/configure/lui_params.json" }
-#      - { src: "configure/cleanIlog.properties", dest: "{{ deploy_path }}/configure/cleanIlog.properties" }
-#      - { src: "configure/logback.xml", dest: "{{ deploy_path }}/configure/logback.xml" }
-#  tags: ['upgrade']
-#
-#
-#- name: 生成启动脚本
-#  template:
-#      src: "{{ item.src }}"
-#      dest: "{{ item.dest }}"
-#      owner: winning
-#      group: winning
-#      mode: 0755
-#  with_items:
-#      - { src: "startup.sh.j2", dest: "{{ deploy_path }}/startup.sh" }
-#  tags: ['upgrade']
-
 - name: 停止服务
   shell: './stop.sh'
   args:
@@ -82,7 +39,7 @@
 - debug: var=stop_out.stdout
 
 - name: 启动服务
-  shell: './startup.sh'
+  shell: './startupByAnsible.sh'
   args:
       chdir: "{{ deploy_path }}"
   tags: ['upgrade']

@@ -8,7 +8,7 @@
     loop_control: { loop_var: app_info },
     when: app_info.hostIp == ansible_ssh_host and app_info.deploy_type == 'littledepl',
     no_log: true,
-    ags: ['install']
+    ags: ['start', 'restart']
 }
 - { include: do.yml, loop: '{{ app_infos }}',
     loop_control: { loop_var: app_info },

@@ -1,0 +1,21 @@
+- name: set sql
+  ##\"字符在脚本中会替换成‘
+  set_fact:
+    tenant_sql: "select t.NAME,t.CODE,t.PASSWORD,t.HOSPITAL_SOID,p.value NTPSERVER from TNT_TENANT t join sys_param p on p.code =\"ntpserver\";"
+
+- name: get tenant param
+  register: res
+  shell: "sh {{role_path}}/files/h2.sh '{{h2_db_url}}' '{{h2_db_user}}' '{{h2_db_pwd}}' '{{tenant_sql}}'|sed -r 's/[ ]*//g'"
+
+- name: get tenant params json
+  set_fact:
+    param: "{{ dict(res.stdout_lines[0].split('|')| zip(res.stdout_lines[1].split('|'))) }}"
+
+- name: param soid
+  set_fact:
+    soid: "{{param.HOSPITAL_SOID}}"
+
+- name: set log name
+  register: logname
+  shell: "echo $(date +%Y%m%d-%H)"
+

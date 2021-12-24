@@ -1,0 +1,1 @@
+sqlcmd -S {{ host }}{% if instance|default('')!='' %}\\{{ instance }} {% elif sql_port|default('')!='' %},{{sql_port}}{% endif %} -U WINDBA -P {{ windba_pass }} -i {% if is_windows=='yes' %}{% raw %}%1{% endraw %}{% else %}{% raw %}$1{% endraw %}{% endif %}

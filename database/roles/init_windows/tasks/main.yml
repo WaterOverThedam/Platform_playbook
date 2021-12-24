@@ -1,0 +1,36 @@
+---
+
+
+- name: create restore relevent path
+  win_file:
+    path: "{{item}}"
+    state: directory
+    recurse: yes
+  loop:
+    - "{{bak_path}}{{path_separator}}scripts"
+  tags: ['path','prepare']
+
+- include: sys_check.yml
+  tags: 'check'
+
+- name: copy sql script to remote
+  script: "time_sync.cmd {{param.NTPSERVER}}"
+  register: result
+  tags: ["time_sync"]
+- debug: var=result.stdout_lines
+  tags: ["time_sync"]
+
+- name: set firewall
+  script: "win-firewall.cmd {{rdp_port}} {{sql_port}}"
+  register: result
+  tags: ['firewall','fw']
+- debug: var=result.stdout_lines
+  tags: ['firewall','fw']
+
+- name: restart windows
+  win_reboot:
+    msg: "Restart the server 10 seconds later"
+    post_reboot_delay: 3  
+    pre_reboot_delay: 10
+    test_command: whoami
+  tags: ["os_restart","restart"]

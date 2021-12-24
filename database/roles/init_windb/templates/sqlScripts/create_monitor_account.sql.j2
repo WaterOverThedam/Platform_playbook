@@ -1,0 +1,86 @@
+if exists (select * from sys.objects where name = 'fn_freq_subday')
+begin
+ drop  FUNCTION fn_freq_subday
+end
+go
+
+-- 第二步：执行语句创建作业计划所用函数(如果报错，把create or alter改为create)
+create function fn_freq_subday(@freq_interval int) returns nvarchar(21)
+as
+begin
+  declare @count int = 6, @freq_interval_text nvarchar(20) = ''
+  while @count> =0
+    begin
+      if @freq_interval >= power(2,@count)
+         begin
+           set @freq_interval=@freq_interval-power(2,@count)
+           set @freq_interval_text = '周' + substring('日一二三四五六', @count+1,1) + ',' + @freq_interval_text
+         end
+      set @count = @count - 1
+  end
+  return left(@freq_interval_text,len(@freq_interval_text)-1)
+end
+go
+
+-- 第三步：执行语句创建监控账号（用户名：winning_monitor 密码：winning@300253，如需修改，请执行前修改脚本）
+set nocount on
+if not exists (select * from sys.sql_logins where name = 'winning_monitor')
+begin
+     exec ('use master create login winning_monitor with password= ''winning@300253'' grant view server state to winning_monitor')
+end
+go
+
+declare @dbnumber int, @dbid int, @is_read_only bit, @sql nvarchar(4000);
+declare @dblist table (row int identity, dbid smallint, is_read_only bit, user_access_desc nvarchar(120));
+insert into @dblist select database_id, is_read_only, user_access_desc from sys.databases where name != 'tempdb' and state_desc = N'online';
+select @dbnumber = count(*) from @dblist
+while @dbnumber > 0
+begin
+   select @dbid = dbid, @is_read_only = is_read_only from @dblist where row = @dbnumber
+   if ((select user_access  from sys.databases where database_id = @dbid) = 0)
+      begin
+        if @is_read_only = 1
+           begin
+             set @sql =N'use master alter database ' + db_name(@dbid) + ' set read_write'
+             exec (@sql)
+           end
+        set @sql = N'use ' + quotename(db_name(@dbid)) + ' '
+           + 'if not exists (select * from sys.database_principals where name = ''winning_monitor'')
+                begin
+                    create user winning_monitor for login winning_monitor with default_schema=information_schema
+                end
+              else
+                begin
+                    exec sp_change_users_login ''update_one'',''winning_monitor'',''winning_monitor''
+                end';
+       exec (@sql)
+       if @is_read_only = 1
+          begin
+            set @sql =N'use master alter database ' + db_name(@dbid) + ' set read_only'
+            exec (@sql)
+          end
+     end
+   set @dbnumber = @dbnumber - 1
+end
+
+go
+
+begin
+     exec ('grant view server state to winning_monitor')
+     exec ('use master alter login winning_monitor with password=''winning@300253''')
+     exec ('use msdb grant select on dbo.sysjobactivity to winning_monitor')
+     exec ('use msdb grant select on dbo.sysjobhistory to winning_monitor')
+     exec ('use msdb grant select on dbo.sysjobs to winning_monitor')
+     exec ('use msdb grant select on dbo.sysjobschedules to winning_monitor')
+     exec ('use msdb grant select on dbo.sysjobservers to winning_monitor')
+     exec ('use msdb grant select on dbo.sysjobsteps to winning_monitor')
+     exec ('use msdb grant select on dbo.syscategories to winning_monitor')
+     exec ('use msdb grant select on dbo.sysproxies to winning_monitor')
+     exec ('use msdb grant select on dbo.sysschedules to winning_monitor')
+     exec ('use master grant execute on dbo.fn_freq_subday to winning_monitor')
+     exec ('use master grant view any definition to winning_monitor')
+     exec ('use master grant alter any connection to winning_monitor')
+     exec ('use master grant alter trace to winning_monitor')
+     exec ('use master grant execute on sys.xp_enumerrorlogs to winning_monitor')
+     exec ('use master grant execute on sys.xp_readerrorlog to winning_monitor')
+end

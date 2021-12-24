@@ -1,0 +1,93 @@
+#!/bin/bash
+
+APP_DEPLOY_PATH={{ deploy_path }}/
+
+check()
+{
+    spid=`ps aux | grep -v grep | grep $APP_DEPLOY_PATH | awk 'NR==1{print $2}'`
+    if [ ! $spid ];then
+        return 0;
+    else
+        # running
+        return 1;
+    fi
+}
+
+check
+if (($? == 1));then
+    echo -e " \033[32m【$APP_DEPLOY_PATH】 service has been started!!!\033[1m\033[0m"
+    exit 0
+else
+    echo -e " \033[32m【$APP_DEPLOY_PATH】 service starting...\033[1m\033[0m"
+fi
+
+{% if app_info.deploy_type == 'wdshisdepl' %}
+## HIS部署模式
+cd {{ deploy_path }}
+java -jar {{ app_info.mem_opts }} {{ deploy_path }}/winning-wds-fhir-his.jar "$@" &
+
+{% elif app_info.deploy_type == 'tmtsdepl'  %}
+
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:HeapDumpPath={{ deploy_path }}/ms_logs/heapdump-%p.hprof "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ deploy_path }}/ms_logs/hs_err_pid<pid>.log "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -Xloggc:{{ deploy_path }}/ms_logs/gc.log "
+
+cd {{ deploy_path }}
+
+java {{ app_info.java_opts_def }} {{ app_info.mem_opts }} \
+ -Duser.timezone=GMT+08 -Djava.awt.headless=true\
+ -Dorg.eclipse.jetty.server.Request.maxFormContentSize=104857600\
+ -Djavax.xml.bind.context.factory=com.sun.xml.internal.bind.v2.ContextFactory\
+ -Djava.rmi.server.hostname=127.0.0.1\
+ -Dcom.sun.management.jmxremote.authenticate=false\
+ -Dcom.sun.management.jmxremote.ssl=false\
+ -Ddatabase.show.sql=false\
+ -Drunmodel=runtime\
+ -Dcop.host.ip={{ app_info.cop_host_ip }}\
+ -Dinstance.serial={{ app_info.instance_serial }}\
+ -classpath {{ deploy_path }}/launcher/launch-0.0.1-SNAPSHOT.jar com.winning.mde.loader.ClasssLoaderForRunTime "$@" &
+
+{% elif app_info.deploy_type == 'aaiodepl' or app_info.deploy_type == 'aaiodepl4pkg' %}
+
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:HeapDumpPath={{ deploy_path }}/ms_logs/heapdump-%p.hprof "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ deploy_path }}/ms_logs/hs_err_pid<pid>.log "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -Xloggc:{{ deploy_path }}/ms_logs/gc.log "
+
+cd {{ deploy_path }}
+
+java {{ app_info.java_opts_def }} {{ app_info.mem_opts }} \
+ -Duser.timezone=GMT+08 -Djava.awt.headless=true\
+ -Dorg.eclipse.jetty.server.Request.maxFormContentSize=104857600\
+ -Djavax.xml.bind.context.factory=com.sun.xml.internal.bind.v2.ContextFactory\
+ -Djava.rmi.server.hostname=127.0.0.1\
+ -Dcom.sun.management.jmxremote.authenticate=false\
+ -Dcom.sun.management.jmxremote.ssl=false\
+ -Ddatabase.show.sql=false\
+ -Drunmodel=runtime\
+ -Dcop.host.ip={{ app_info.cop_host_ip }}\
+ -Dinstance.serial={{ app_info.instance_serial }}\
+ -DhomePath={{ deploy_path }}/modules\
+ {% if app_info.skywalking_opts is defined and (app_info.skywalking_opts|length>0)  %}
+ {{ app_info.skywalking_opts }}\
+ {% endif%}
+ -jar {{ deploy_path }}/launcher/launch-0.0.2-SNAPSHOT.jar  "$@" &
+
+{% else %}
+## 其他部署模式
+
+export WINAPPID="{{ app_info.win_appid }}"
+export WINPORT="{{ app_info.win_port }}"
+{% if app_info.deploy_type == 'littledepl' %}
+## 小包组合部署
+export JARFILE="{{ deploy_path }}/boot/base/launcher/launcher-1.5-SNAPSHOT.jar"
+{% else %}
+export JARFILE="{{ deploy_path }}/launcher-1.3-SNAPSHOT.jar"
+{% endif%}
+export CONSUL_TAG="-Dspring.cloud.consul.discovery.tags={{ app_info.win_consul_tag }}"
+export INSTANCE_CODE="-Dxxl.job.executor.port={{ app_info.xxl_job_port }}"
+export SERVER_PORT="{{ app_info.win_port }}"
+
+cd {{ deploy_path }}
+source ./run.sh
+
+{% endif%}

@@ -97,6 +97,7 @@
       group: winning
       mode: 0755
   with_items:
+      - { src: "startupByAnsible.sh.j2", dest: "{{ deploy_path }}/startupByAnsible.sh" }
       - { src: "startup.sh.j2", dest: "{{ deploy_path }}/startup.sh" }
   tags: ['install']
 
@@ -109,7 +110,7 @@
 - debug: var=stop_out.stdout
 
 - name: 启动服务
-  shell: './startup.sh'
+  shell: './startupByAnsible.sh'
   args:
       chdir: "{{ deploy_path }}"
   tags: ['install']

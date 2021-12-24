@@ -1,0 +1,34 @@
+#!/bin/bash
+
+export JAVA_OPTS="{{ app_info.java_opts_def }} {{ app_info.mem_opts }} "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:MaxDirectMemorySize={{ app_info.max_derect_memory_size }} -XX:ReservedCodeCacheSize={{ app_info.reserved_code_cache_size }} "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:+UseCMSInitiatingOccupancyOnly -XX:+ExplicitGCInvokesConcurrent -XX:+ParallelRefProcEnabled "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:+CMSParallelInitialMarkEnabled -XX:MaxTenuringThreshold=3 "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:+UnlockDiagnosticVMOptions -XX:ParGCCardsPerStrideChunk=1024 "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintPromotionFailure -XX:+PrintGCApplicationStoppedTime "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:-UseBiasedLocking -XX:AutoBoxCacheMax=20000 -Djava.security.egd=file:/dev/./urandom "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:+PrintCommandLineFlags -XX:-OmitStackTraceInFastThrow "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:+HeapDumpOnOutOfMemoryError "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -Dapp.id={{ app_info.win_appid }} $CONSUL_TAG $INSTANCE_CODE "
+
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:HeapDumpPath={{ log_path }}/error/heapdump-%p.hprof "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -XX:ErrorFile={{ log_path }}/error/hs_err_pid<pid>.log "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -Xloggc:{{ log_path }}/gc/gc.log "
+
+export JAVA_OPTS="{{ app_info.java_opts_def }} -DdisableApollo=true -Dapollo.bootstrap.enabled=false -DinstanceSerial={{ app_info.instance_serial }} -Dspring.pid.file=server.pid "
+{% if app_info.deploy_type == 'littledepl' %}
+export JAVA_OPTS="{{ app_info.java_opts_def }} -DoneJarOnly={{ app_info.one_jar_only }} -DdisableCommBiz={{ app_info.disable_comm_biz }} -Dframework={{ app_info.framework_version }} "
+export JAVA_OPTS="{{ app_info.java_opts_def }} -DdisableWebSecurity={{ app_info.disable_web_security }} -Dprofile={{ app_info.profile_sign }} "
+{% endif%}
+
+{% if app_info.win_java_opts is defined %}
+export JAVA_OPTS="{{ app_info.java_opts_def }} {{ app_info.win_java_opts }} "
+{% endif%}
+
+{% if app_info.svn_app_jar_path == 'boot' %}
+nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -DbaseHome={{ deploy_path }}/boot -jar $JARFILE "$@" >/dev/null 2>&1 &
+{% else %}
+nohup java {{ app_info.java_opts_def }} -Dspring.config.additional-location=application.properties -jar {{ deploy_path }}/main.jar "$@" >/dev/null 2>&1 &
+{% endif%}
