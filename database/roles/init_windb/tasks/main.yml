@@ -7,8 +7,8 @@
   tags: ['param','params']
 - name: set restore relevant path
   set_fact:
-    bak_path: "{{root_path}}{{path_separator}}WiNEX"
-    data_dir: "{{root_path}}{{path_separator}}Database"
+    bak_path: "{{root_path}}WiNEX"
+    data_dir: "{{root_path}}Database"
   tags: ['param','params']
 
 - name: get bakfile path
@@ -16,6 +16,7 @@
   shell: "sh {{role_path}}/files/get_bakfile.sh"
   run_once: true
   delegate_to: localhost
+  failed_when: 'bakfile.stdout == ""'
   tags: ['bakfile']
 - name: set bakfile name
   set_fact:
