@@ -48,20 +48,6 @@
   notify:
     - restart crond
   tags: ['clean_log','crond']
-##日志收集目录定期清理
-- name: cron for log clean on rsyslog
-  cron:
-    name: "clean /winning/rsyslog before 30 day"
-    weekday: "0"
-    minute: "45"
-    hour: "2"
-    job: "find /winning/rsyslog/  -mtime +7|xargs rm -rf"
-    state: present
-  delegate_to: localhost
-  run_once: True
-  notify:
-    - restart crond
-  tags: ['rsyslog','clean_log','crond']
 
 - name: make workdir
   file: 'dest={{item}} mode=0755 owner=winning group=winning recurse=yes'
@@ -141,50 +127,6 @@
     dest: /etc/localtime
     state: link
 
-- name: set tunning sshd config for ops host
-  lineinfile:
-    dest: /etc/ssh/sshd_config
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - { regexp: '^GSSAPIAuthentication',line: 'GSSAPIAuthentication no' }
-    - { regexp: '^#?UseDNS',line: 'UseDNS no' }
-    - { regexp: 'PubkeyAuthentication',line: 'PubkeyAuthentication yes'}
-  notify:
-    - restart sshd
-  delegate_to: localhost
-  run_once: True
-  tags: 'sshd_tunning'
-- name: set tunning ssh config for ops host
-  lineinfile:
-    dest: /etc/ssh/ssh_config
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - { regexp: 'ForwardAgent',line: 'ForwardAgent yes'}
-  delegate_to: localhost
-  run_once: True
-  tags: 'ssh_tunning'
-##端口改成5141避免与平台java流量收集程序冲突
-- name: modify rsyslog reception port
-  replace:
-    path: /etc/rsyslog.conf
-    regexp: "{{ item.regexp }}"
-    replace: "{{ item.line }}"
-  with_items:
-    - { regexp: '(.*) 514(.*)',line: '\1 5141'}
-  delegate_to: localhost
-  run_once: True
-  notify:
-    - restart rsyslog
-  tags: ['rsyslog']
-
-- name: selinux remove for localhost
-  selinux: state=disabled
-  delegate_to: localhost
-  run_once: True
-  tags: selinux_remove
-
 #script支持不copy直接执行
 - name: upgrade security 安全加固....
   script: "security_lv3.sh"
@@ -195,7 +137,7 @@
    find "{{app_path.app}}" -name startup.sh|awk -F "/startup.sh" '{print "echo "NR";cd "$1";./stop.sh"}' |sh  &> /tmp/stop.log
   when: app_stop
   tags: ['switch']
-##如查使用不同主机不同随机密码策略，此任务不执行  
+##如果使用不同主机不同随机密码策略，此任务不执行  
 - name: HOSTS switch login user to winning
   local_action: "shell sh {{role_path}}/files/change2winning.sh {{h2_db_url}} {{h2_db_user}} {{h2_db_pwd}} {{inventory_hostname}}"
   when: ansible_winning_password == 'Win.2020'
@@ -211,14 +153,7 @@
   when: result_app_stat.stat.exists == True
   tags: ['switch']
 
-- name: install rsync
-  local_action: yum name=rsync state=present
-  run_once: true
-  tags: ['source']
-- name: set winning downloadable file
-  local_action: copy src=source dest='{{product_path}}'
-  run_once: true
-  tags: ['source']
+
 
 - name: selinux remove ....
   selinux: state=disabled
@@ -230,6 +165,7 @@
   tags: ['tee_tmp']
 
 #运管平台和工作节点都执行的任务
+- {include: local_action.yml, tags: "ops", delegate_to: localhost, run_once: true}
 - {include: all_host_task.yml, tags: "ops", delegate_to: localhost, run_once: true}
 - {include: all_host_task.yml, tags: "worker" }
 

@@ -1,0 +1,58 @@
+##日志收集目录定期清理
+- name: cron for log clean on rsyslog
+  cron:
+    name: "clean /winning/rsyslog before 7 day"
+    weekday: "0"
+    minute: "45"
+    hour: "2"
+    job: "find /winning/rsyslog/  -mtime +7|xargs rm -rf"
+    state: present
+  notify:
+    - restart crond
+  tags: ['rsyslog','clean_log','crond']
+
+- name: set tunning sshd config for ops host
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^GSSAPIAuthentication',line: 'GSSAPIAuthentication no' }
+    - { regexp: '^#?UseDNS',line: 'UseDNS no' }
+    - { regexp: 'PubkeyAuthentication',line: 'PubkeyAuthentication yes'}
+  notify:
+    - restart sshd
+  tags: 'sshd_tunning'
+- name: set tunning ssh config for ops host
+  lineinfile:
+    dest: /etc/ssh/ssh_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: 'ForwardAgent',line: 'ForwardAgent yes'}
+  tags: 'ssh_tunning'
+##端口改成5141避免与平台java流量收集程序冲突
+- name: modify rsyslog reception port
+  replace:
+    path: /etc/rsyslog.conf
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.line }}"
+  with_items:
+    - { regexp: '(.*) 514(.*)',line: '\1 5141'}
+  notify:
+    - restart rsyslog
+  tags: ['rsyslog']
+
+- name: selinux remove for localhost
+  selinux: state=disabled
+  tags: selinux_remove
+- name: install winrm for ops
+  shell: "sh {{playbook_dir}}/../database/files/pywinrm_pkgs_simple"
+  tags: ['winrm']
+
+- name: install rsync
+  yum: name=rsync state=present
+  tags: ['source']
+- name: set winning downloadable file
+  copy: src=source dest='{{product_path}}'
+  tags: ['source']

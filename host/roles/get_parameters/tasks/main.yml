@@ -31,7 +31,7 @@
     host_all: "{{ hosts.split('\n') }}"
 - name: append ngx_vip and self to host_all list
   set_fact:
-    host_all: "{{host_all + [ngx_vip,'127.0.0.1']}}"
+    host_all: "{{(host_all + [ngx_vip,local_ip.stdout,'127.0.0.1']) | unique}}"
   when: ngx_vip is defined
 - name: append extra_ips to host_all list
   set_fact:
